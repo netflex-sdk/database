@@ -1,0 +1,46 @@
+{
+    "name": "netflex/database",
+    "type": "library",
+    "description": "Netflex Database driver for Laravel",
+    "keywords": [
+        "netflex",
+        "laravel",
+        "database"
+    ],
+    "authors": [
+        {
+            "name": "Thomas Alrek",
+            "email": "thomas@apility.no"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Netflex\\Database\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.4.0"
+        }
+    },
+    "require": {
+        "php": "^7.4",
+        "illuminate/support": "^8.0",
+        "illuminate/database": "^8.0",
+        "netflex/api": "^4.0",
+        "netflex/query-builder": "^4.0"
+    },
+    "require-dev": {
+        "larapack/dd": "^1.1",
+        "illuminate/config": "^8.0",
+        "phpoption/phpoption": "^1.9",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Netflex\\Database\\DatabaseServiceProvider"
+            ]
+        }
+    }
+}
