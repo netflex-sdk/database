@@ -41,7 +41,7 @@ To use the Netflex API as a database backend for your Eloquent models, simply en
 
 If you have configured aliases for your Netflex structures, you can skip name `$table` property and let Eloquent resolve the index name for you based on the model name.
 
-```
+```php
 <?php
 
 namespace App\Models;
