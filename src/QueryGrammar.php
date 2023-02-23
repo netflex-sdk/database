@@ -223,11 +223,10 @@ class QueryGrammar extends Grammar
      */
     public function compileWheres(Builder $query)
     {
-        $body = [];
+        $body = ['track_scores' => true];
 
         if (count($compiled = $this->compileWheresToArray($query)) > 0) {
             if ($compiledQuery = $this->concatenateWhereClauses($query, $compiled)) {
-                $body['track_scores'] = true;
                 $body['query'] =  [
                     'query_string' => [
                         'query' => $compiledQuery
@@ -460,7 +459,6 @@ class QueryGrammar extends Grammar
         }
 
         return [
-            'track_scores' => true,
             'function_score' => [
                 'random_score' => [
                     'seed' => $seed
