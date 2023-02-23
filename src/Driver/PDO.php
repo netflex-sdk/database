@@ -51,7 +51,7 @@ final class PDO extends BasePDO
      **/
     public function beginTransaction(): bool
     {
-        throw new RuntimeException('This database engine does not support transactions.');
+        return true;
     }
 
     /**
@@ -60,7 +60,7 @@ final class PDO extends BasePDO
      **/
     public function commit(): bool
     {
-        throw new RuntimeException('This database engine does not support transactions.');
+        return true;
     }
 
     /**
@@ -87,7 +87,6 @@ final class PDO extends BasePDO
      **/
     public function exec($query, ?array $output = null, ?int $return_var = null)
     {
-        throw new RuntimeException('This database engine does not support transactions.');
         $statement = new PDOStatement($this, $query);
         $statement->execute();
         return $statement->affectedRows;
@@ -166,7 +165,7 @@ final class PDO extends BasePDO
      **/
     public function rollBack(): bool
     {
-        throw new RuntimeException('This database engine does not support transactions.');
+        return false;
     }
 
     /**

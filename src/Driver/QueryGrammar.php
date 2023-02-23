@@ -302,12 +302,7 @@ class QueryGrammar extends Grammar
     {
         $builder = new QueryBuilder(false, []);
 
-        // Remove the table name from the column name. If set
-        if ($from = $query->from ?? null) {
-            if (Str::startsWith($where['column'] . '.', $from)) {
-                $where['column'] = Str::replaceFirst($from . '.', '', $where['column']);
-            }
-        }
+        $where['column'] = $this->removeQualifiedColumn($query->from, $where['column']);
 
         if (is_string($where['value'])) {
             $where['value'] = str_replace('%', '*', $where['value']);
@@ -320,6 +315,16 @@ class QueryGrammar extends Grammar
         return $builder
             ->where($where['column'], $where['operator'], $where['value'])
             ->getQuery();
+    }
+
+    public function removeQualifiedColumn($table, $column)
+    {
+        // Remove the table name from the column name. If set
+        if (Str::startsWith($column, $table . '.')) {
+            $column = Str::replaceFirst($table . '.', '', $column);
+        }
+
+        return $column;
     }
 
     protected function whereNested(Builder $query, $where)
@@ -534,13 +539,16 @@ class QueryGrammar extends Grammar
     /**
      * Compile an insert statement into SQL.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $values
-     * @return string
+     * @param Builder $query
+     * @param array $values
+     * @return array
      */
     public function compileInsert(Builder $query, array $values)
     {
-        return json_encode($values);
+        return [
+            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'data' => $values
+        ];
     }
 
     /**
@@ -554,6 +562,25 @@ class QueryGrammar extends Grammar
     public function compileInsertGetId(Builder $query, $values, $sequence)
     {
         return $this->compileInsert($query, $values);
+    }
+
+    public function compileUpdate(Builder $query, array $values)
+    {
+        return [
+            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'id' => $query->wheres[0]['value'],
+            'query' => $this->compileWheres($query),
+            'data' => $values
+        ];
+    }
+
+    public function compileDelete(Builder $query)
+    {
+        return [
+            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'id' => $query->wheres[0]['value'],
+            'query' => $this->compileWheres($query),
+        ];
     }
 
     /**

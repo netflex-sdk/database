@@ -109,7 +109,7 @@ class Connection extends BaseConnection
     /**
      * Run an insert statement against the database.
      *
-     * @param string $query
+     * @param array $query
      * @param array $bindings
      * @return bool
      */
@@ -117,14 +117,32 @@ class Connection extends BaseConnection
     {
         $index = $query['index'] ?? null;
         $data = $query['data'] ?? null;
+        $payload = [];
+        $table = $index;
+        $type = $index;
 
-        if (Str::startsWith($index, 'entry_')) {
-            return $this->insertEntry(Str::after($index, 'entry_'), $data);
+        if (array_key_first($data) === 0) {
+            foreach ($data as $item) {
+                $this->insert(['index' => $index, 'data' => $item], $bindings);
+            }
+
+            return true;
         }
 
-        switch ($index) {
+        if (Str::startsWith($table, 'entry_')) {
+            $table = Str::after($table, 'entry_');
+            $type = 'entry';
+        }
+
+        foreach ($data as $key => $value) {
+            $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
+        }
+
+        switch ($type) {
+            case 'entry':
+                return $this->insertEntry($table, $payload);
             case 'customer':
-                return $this->insertCustomer($data);
+                return $this->insertCustomer($payload);
             default:
                 break;
         }
@@ -133,8 +151,6 @@ class Connection extends BaseConnection
     }
 
     /**
-     * Undocumented function
-     *
      * @param string|int $structure
      * @param array $data
      * @return bool
@@ -142,7 +158,7 @@ class Connection extends BaseConnection
     protected function insertEntry($structure, $data)
     {
         $pdo = $this->getPdo();
-        $pdo->setLastIsertId(null);
+        $pdo->setLastInsertId(null);
         $client = $pdo->getApiClient();
         $result = $client->post('builder/structures/' . $structure . '/entry', $data);
         $pdo->setLastInsertId($result->entry_id);
@@ -152,23 +168,101 @@ class Connection extends BaseConnection
     protected function insertCustomer($data)
     {
         $pdo = $this->getPdo();
-        $pdo->setLastIsertId(null);
+        $pdo->setLastInsertId(null);
         $client = $pdo->getApiClient();
         $result = $client->post('relations/customers/customer', $data);
         $pdo->setLastInsertId($result->customer_id);
         return true;
     }
 
+    protected function bulk($index, $data, $clause, Closure $callback)
+    {
+        $pdo = $this->getPdo();
+        $clause['_source'] = ['id'];
+        $clause['size'] = 10000;
+        $clause['index'] = $index;
+        $statement = $pdo->prepare($clause);
+        $statement->execute();
+        $results = collect($statement->fetchAll())->pluck('id');
+        $affected = 0;
+
+        foreach ($results as $id) {
+            $callback([
+                'index' => $index,
+                'id' => $id,
+                'data' => $data,
+            ]);
+            $affected++;
+        }
+
+        return $affected;
+    }
+
     /**
      * Run an update statement against the database.
      *
-     * @param string $query
+     * @param array $query
      * @param array $bindings
      * @return int
      */
     public function update($query, $bindings = [])
     {
-        return $this->insert($query, $bindings);
+        $index = $query['index'] ?? null;
+        $id = $query['id'] ?? false;
+        $clause = $query['query'] ?? null;
+        $data = $query['data'] ?? null;
+        $payload = [];
+        $table = $index;
+        $type = $index;
+
+        if (!$id && $clause) {
+            return $this->bulk($index, $data, $clause, function ($query) {
+                return $this->update($query);
+            });
+        }
+
+        if (Str::startsWith($table, 'entry_')) {
+            $table = Str::after($table, 'entry_');
+            $type = 'entry';
+        }
+
+        foreach ($data as $key => $value) {
+            $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
+        }
+
+        switch ($type) {
+            case 'entry':
+                return $this->updateEntry($id, $payload);
+            case 'customer':
+                return $this->updateCustomer($id, $payload);
+            default:
+                break;
+        }
+
+        throw new RuntimeException('This database engine does not support updates for [' . $index . '].');
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string|int $structure
+     * @param array $data
+     * @return bool
+     */
+    protected function updateEntry($id, $data)
+    {
+        $pdo = $this->getPdo();
+        $client = $pdo->getApiClient();
+        $client->put('builder/structures/entry/' . $id, $data);
+        return true;
+    }
+
+    protected function updateCustomer($id, $data)
+    {
+        $pdo = $this->getPdo();
+        $client = $pdo->getApiClient();
+        $client->put('relations/customers/customer/' . $id, $data);
+        return true;
     }
 
     /**
@@ -180,7 +274,49 @@ class Connection extends BaseConnection
      */
     public function delete($query, $bindings = [])
     {
-        throw new RuntimeException('This database engine does not support deletes.');
+        $index = $query['index'] ?? null;
+        $id = $query['id'] ?? false;
+        $clause = $query['query'] ?? null;
+        $table = $index;
+        $type = $index;
+
+        if (!$id && $clause) {
+            return $this->bulk($index, [], $clause, function ($query) {
+                return $this->delete($query);
+            });
+        }
+
+        if (Str::startsWith($table, 'entry_')) {
+            $type = 'entry';
+            $table = Str::after($table, 'entry_');
+        }
+
+        switch ($type) {
+            case 'entry':
+                return $this->deleteEntry($id);
+            case 'customer':
+                return $this->deleteCustomer($id);
+            default:
+                break;
+        }
+
+        throw new RuntimeException('This database engine does not support deletes of [' . $index . '].');
+    }
+
+    protected function deleteEntry($id)
+    {
+        $pdo = $this->getPdo();
+        $client = $pdo->getApiClient();
+        $client->delete('builder/structures/entry/' . $id);
+        return true;
+    }
+
+    protected function deleteCustomer($id)
+    {
+        $pdo = $this->getPdo();
+        $client = $pdo->getApiClient();
+        $client->delete('relations/customers/customer/' . $id);
+        return true;
     }
 
     /**
