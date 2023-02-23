@@ -12,8 +12,8 @@ class NameObserver
      */
     public function saving($model)
     {
-        if (!$model->name) {
-            $model->name = Str::uuid();
+        if (!isset($model->name)) {
+            $model->name = (string) Str::uuid();
         }
     }
 }

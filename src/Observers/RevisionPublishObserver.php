@@ -11,7 +11,7 @@ class RevisionPublishObserver
      */
     public function saving($model)
     {
-        if (isset($model->revision_publish)) {
+        if (!isset($model->revision_publish)) {
             $model->revision_publish = true;
         }
     }
