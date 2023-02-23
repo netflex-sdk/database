@@ -2,9 +2,14 @@
 
 namespace Netflex\Database;
 
-use Illuminate\Database\Connection as BaseConnection;
-use Netflex\Database\PDO;
 use RuntimeException;
+
+use Illuminate\Database\Events\StatementPrepared;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Connection as BaseConnection;
+
+use PDOStatement;
+use Netflex\Database\PDO;
 
 class Connection extends BaseConnection
 {
@@ -21,10 +26,45 @@ class Connection extends BaseConnection
     }
 
     /**
+     * Log a query in the connection's query log.
+     *
+     * @param array $query
+     * @param array $bindings
+     * @param float|null $time
+     * @return void
+     */
+    public function logQuery($query, $bindings, $time = null)
+    {
+        $this->event(new QueryExecuted(json_encode($query), $bindings, $time, $this));
+
+        if ($this->loggingQueries) {
+            $this->queryLog[] = compact('query', 'bindings', 'time');
+        }
+    }
+
+    /**
+     * Configure the PDO prepared statement.
+     *
+     * @param PDOStatement $statement
+     * @return PDOStatement
+     */
+    protected function prepared(PDOStatement $statement)
+    {
+        $statement->setFetchMode($this->fetchMode);
+
+        $this->event(new StatementPrepared(
+            $this,
+            $statement
+        ));
+
+        return $statement;
+    }
+
+    /**
      * Run an insert statement against the database.
      *
-     * @param  string  $query
-     * @param  array  $bindings
+     * @param string $query
+     * @param array $bindings
      * @return bool
      */
     public function insert($query, $bindings = [])
@@ -35,8 +75,8 @@ class Connection extends BaseConnection
     /**
      * Run an update statement against the database.
      *
-     * @param  string  $query
-     * @param  array  $bindings
+     * @param string $query
+     * @param array $bindings
      * @return int
      */
     public function update($query, $bindings = [])
@@ -47,8 +87,8 @@ class Connection extends BaseConnection
     /**
      * Run a delete statement against the database.
      *
-     * @param  string  $query
-     * @param  array  $bindings
+     * @param string $query
+     * @param array $bindings
      * @return int
      */
     public function delete($query, $bindings = [])
@@ -59,7 +99,7 @@ class Connection extends BaseConnection
     /**
      * Get the default query grammar instance.
      *
-     * @return \Illuminate\Database\Query\Grammars\Grammar
+     * @return QueryGrammar
      */
     protected function getDefaultQueryGrammar()
     {

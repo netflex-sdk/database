@@ -66,8 +66,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile an aggregated select clause.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $aggregate
+     * @param Builder $query
+     * @param array $aggregate
      * @return string
      */
     protected function compileAggregate(Builder $query, $aggregate)
@@ -218,7 +218,7 @@ class QueryGrammar extends Grammar
     /**
      * Compile the "where" portions of the query.
      *
-     * @param Builder  $query
+     * @param Builder $query
      * @return array
      */
     public function compileWheres(Builder $query)
@@ -242,8 +242,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile a "where null" clause.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
+     * @param Builder $query
+     * @param array $where
      * @return string
      */
     protected function whereNull(Builder $query, $where)
@@ -254,8 +254,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile a "where not null" clause.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
+     * @param Builder $query
+     * @param array $where
      * @return string
      */
     protected function whereNotNull(Builder $query, $where)
@@ -266,7 +266,7 @@ class QueryGrammar extends Grammar
     /**
      * Get an array of all the where clauses for the query.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param Builder $query
      * @return array
      */
     protected function compileWheresToArray($query)
@@ -295,8 +295,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile a basic where clause.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
+     * @param Builder $query
+     * @param array $where
      * @return string
      */
     protected function whereBasic(Builder $query, $where)
@@ -341,8 +341,8 @@ class QueryGrammar extends Grammar
      *
      * For safety, whereIntegerInRaw ensures this method is only used with integer values.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
+     * @param Builder $query
+     * @param array $where
      * @return string
      */
     protected function whereInRaw(Builder $query, $where)
@@ -389,9 +389,9 @@ class QueryGrammar extends Grammar
     /**
      * Compile a date based where clause.
      *
-     * @param string  $type
-     * @param Builder  $query
-     * @param array  $where
+     * @param string $type
+     * @param Builder $query
+     * @param array $where
      * @return string
      */
     public function dateBasedWhere($type, $query, $where)
@@ -416,8 +416,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile the "order by" portions of the query.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $orders
+     * @param Builder $query
+     * @param array $orders
      * @return string
      */
     protected function compileOrders(Builder $query, $orders)
@@ -450,7 +450,7 @@ class QueryGrammar extends Grammar
     /**
      * Compile the random statement into SQL.
      *
-     * @param  string  $seed
+     * @param string $seed
      * @return string
      */
     public function compileRandom($seed)
@@ -472,8 +472,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile the "limit" portions of the query.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $limit
+     * @param Builder $query
+     * @param int $limit
      * @return string
      */
     protected function compileLimit(Builder $query, $limit)
@@ -490,8 +490,8 @@ class QueryGrammar extends Grammar
     /**
      * Compile the "offset" portions of the query.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $offset
+     * @param Builder $query
+     * @param int $offset
      * @return string
      */
     protected function compileOffset(Builder $query, $offset)
