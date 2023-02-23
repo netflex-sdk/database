@@ -10,7 +10,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Connection as BaseConnection;
-
+use Illuminate\Support\Str;
 use PDOStatement;
 use Netflex\Database\Driver\PDO;
 
@@ -26,6 +26,18 @@ class Connection extends BaseConnection
         $this->setTablePrefix($config['prefix'] ?? '');
         $this->name = $config['name'] ?? 'default';
         $this->connection = $config['connection'] ?? 'default';
+    }
+
+    /**
+     * Get the current PDO connection.
+     *
+     * @return PDO
+     */
+    public function getPdo()
+    {
+        /** @var PDO $pdo */
+        $pdo = parent::getPdo();
+        return $pdo;
     }
 
     /**
@@ -103,8 +115,48 @@ class Connection extends BaseConnection
      */
     public function insert($query, $bindings = [])
     {
-        dd($query);
-        throw new RuntimeException('This database engine does not support inserts.');
+        $index = $query['index'] ?? null;
+        $data = $query['data'] ?? null;
+
+        if (Str::startsWith($index, 'entry_')) {
+            return $this->insertEntry(Str::after($index, 'entry_'), $data);
+        }
+
+        switch ($index) {
+            case 'customer':
+                return $this->insertCustomer($data);
+            default:
+                break;
+        }
+
+        throw new RuntimeException('This database engine does not support inserts for [' . $index . '].');
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string|int $structure
+     * @param array $data
+     * @return bool
+     */
+    protected function insertEntry($structure, $data)
+    {
+        $pdo = $this->getPdo();
+        $pdo->setLastIsertId(null);
+        $client = $pdo->getApiClient();
+        $result = $client->post('builder/structures/' . $structure . '/entry', $data);
+        $pdo->setLastInsertId($result->entry_id);
+        return true;
+    }
+
+    protected function insertCustomer($data)
+    {
+        $pdo = $this->getPdo();
+        $pdo->setLastIsertId(null);
+        $client = $pdo->getApiClient();
+        $result = $client->post('relations/customers/customer', $data);
+        $pdo->setLastInsertId($result->customer_id);
+        return true;
     }
 
     /**
@@ -116,7 +168,7 @@ class Connection extends BaseConnection
      */
     public function update($query, $bindings = [])
     {
-        throw new RuntimeException('This database engine does not support updates.');
+        return $this->insert($query, $bindings);
     }
 
     /**
