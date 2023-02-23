@@ -11,11 +11,12 @@ use Illuminate\Support\Carbon;
 
 class PublishedScope implements Scope
 {
-    protected DateTimeInterface $now;
     protected bool $published;
+    protected DateTimeInterface $now;
 
     public function __construct(bool $published = true, ?DateTimeInterface $now = null)
     {
+        $this->published = $published;
         $this->now = $now ?? Carbon::now();
     }
 

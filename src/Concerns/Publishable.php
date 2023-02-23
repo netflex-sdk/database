@@ -16,7 +16,7 @@ trait Publishable
     /**
      * @param 
      */
-    public function scopePublished(Builder $query, bool $published = true, ?DateTimeInterface $at = null)
+    public function scopePublished(Builder $query, ?DateTimeInterface $at = null, bool $published = true)
     {
         return with(new PublishedScope($published, $at))
             ->apply($query->withoutGlobalScope(PublishedScope::class), $this);
@@ -24,6 +24,6 @@ trait Publishable
 
     public function scopeUnpublished(Builder $query, ?DateTimeInterface $at = null)
     {
-        return $this->scopePublished($query, false, $at);
+        return $this->scopePublished($query, $at, false);
     }
 }
