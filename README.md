@@ -38,6 +38,25 @@ return [
 
 To use the Netflex API as a database backend for your Eloquent models, simply ensure your models a 'netflex' driver backed connection, and enure that the `$table` property matches the index name of the structure you want to use.
 
+
+If you have configured aliases for your Netflex structures, you can skip name `$table` property and let Eloquent resolve the index name for you based on the model name.
+
+```
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    protected $connection = 'structures';
+    // protected $table = 'articles'; <-- Inferred from model name. Make sure that your connection uses the 'prefix' property set to 'entry_'
+}
+```
+
+If not using aliases, you can use the following syntax:
+
 ```php
 <?php
 
