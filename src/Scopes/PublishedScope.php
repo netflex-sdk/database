@@ -42,17 +42,16 @@ class PublishedScope implements Scope
             ->where('published', $published)
             ->where(
                 fn (Builder $query) => $query
-                    ->where('use_time', $published)
-                    ->where(
-                        fn (Builder $query) => $query
-                            ->whereNull('start')
-                            ->orWhere('start', '<=', $now)
-                            ->whereNull('stop')
-                            ->orWhere('stop', '>=', $now)
-                    )
-            )->orWhere(
-                fn (Builder $query) => $query
                     ->where('use_time', false)
+                    ->orWhere(fn (Builder $query) => $query
+                        ->where('use_time', true)
+                        ->where(
+                            fn (Builder $query) => $query
+                                ->whereNull('start')
+                                ->orWhere('start', '<=', $now)
+                                ->whereNull('stop')
+                                ->orWhere('stop', '>=', $now)
+                        ))
             );
     }
 }

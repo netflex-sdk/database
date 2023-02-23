@@ -13,17 +13,19 @@ trait Publishable
         static::addGlobalScope(new PublishedScope);
     }
 
-    /**
-     * @param 
-     */
-    public function scopePublished(Builder $query, ?DateTimeInterface $at = null, bool $published = true)
+    public function scopeWherePublished(Builder $query, ?DateTimeInterface $at = null, bool $published = true)
     {
         return with(new PublishedScope($published, $at))
             ->apply($query->withoutGlobalScope(PublishedScope::class), $this);
     }
 
-    public function scopeUnpublished(Builder $query, ?DateTimeInterface $at = null)
+    public function scopeWhereUnpublished(Builder $query, ?DateTimeInterface $at = null)
     {
-        return $this->scopePublished($query, $at, false);
+        return $this->scopeWherePublished($query, $at, false);
+    }
+
+    public function scopeWithUnpublished(Builder $query)
+    {
+        return $query->withoutGlobalScope(PublishedScope::class);
     }
 }
