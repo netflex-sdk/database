@@ -119,7 +119,6 @@ final class PDOStatement extends BasePDOStatement
             if ($esResponse = json_decode($response->getBody())) {
                 if ($esResponse->error) {
                     if ($esError = json_decode($esResponse->error->message)) {
-                        dd($esResponse, $this->statement);
                         $message = $esError->error->root_cause[0]->reason;
                     }
                 }
@@ -129,7 +128,6 @@ final class PDOStatement extends BasePDOStatement
             $this->errorCode = $code;
             $this->errorInfo = [get_class($e), $code, $message];
             $this->result = null;
-            dd($message);
 
             throw new PDOException($message, $code, $e);
         }

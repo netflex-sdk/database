@@ -2,8 +2,11 @@
 
 namespace Netflex\Database;
 
+use Closure;
+use Exception;
 use RuntimeException;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Connection as BaseConnection;
@@ -23,6 +26,37 @@ class Connection extends BaseConnection
         $this->setTablePrefix($config['prefix'] ?? '');
         $this->name = $config['name'] ?? 'default';
         $this->connection = $config['connection'] ?? 'default';
+    }
+
+    /**
+     * Run a SQL statement.
+     *
+     * @param array $query
+     * @param array $bindings
+     * @param Closure  $callback
+     * @return mixed
+     *
+     * @throws QueryException
+     */
+    protected function runQueryCallback($query, $bindings, Closure $callback)
+    {
+        // To execute the statement, we'll simply call the callback, which will actually
+        // run the SQL against the PDO connection. Then we can calculate the time it
+        // took to execute and log the query SQL, bindings and time in our memory.
+        try {
+            return $callback($query, $bindings);
+        }
+
+        // If an exception occurs when attempting to run a query, we'll format the error
+        // message to include the bindings with SQL, which will make this exception a
+        // lot more helpful to the developer instead of just the database's errors.
+        catch (Exception $e) {
+            throw new QueryException(
+                json_encode($query),
+                $this->prepareBindings($bindings),
+                $e
+            );
+        }
     }
 
     /**
