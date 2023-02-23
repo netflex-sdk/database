@@ -1,6 +1,6 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Driver;
 
 use RuntimeException;
 
@@ -301,15 +301,38 @@ class QueryGrammar extends Grammar
     protected function whereBasic(Builder $query, $where)
     {
         $builder = new QueryBuilder(false, []);
-        $where['value'] = str_replace('%', '*', $where['value']);
 
-        if ($where['type'] !== 'like') {
-            $where['value'] = str_replace('*', '', $where['value']);
+        // Remove the table name from the column name. If set
+        if ($from = $query->from ?? null) {
+            if (Str::startsWith($where['column'] . '.', $from)) {
+                $where['column'] = Str::replaceFirst($from . '.', '', $where['column']);
+            }
+        }
+
+        if (is_string($where['value'])) {
+            $where['value'] = str_replace('%', '*', $where['value']);
+
+            if ($where['type'] !== 'like') {
+                $where['value'] = str_replace('*', '', $where['value']);
+            }
         }
 
         return $builder
             ->where($where['column'], $where['operator'], $where['value'])
             ->getQuery();
+    }
+
+    protected function whereNested(Builder $query, $where)
+    {
+        if ($compiled = $this->compileWheres($where['query'])) {
+            if (isset($compiled['body']['query']['query_string']['query'])) {
+                if ($compiledNested = $compiled['body']['query']['query_string']['query']) {
+                    return '(' . $compiledNested . ')';
+                }
+            }
+        }
+
+        return '';
     }
 
     protected function whereIn(Builder $query, $where)
@@ -495,5 +518,54 @@ class QueryGrammar extends Grammar
     protected function compileOffset(Builder $query, $offset)
     {
         return ['from' => $offset];
+    }
+
+    /**
+     * Compile an exists statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return string
+     */
+    public function compileExists(Builder $query)
+    {
+        throw new RuntimeException('This database engine does not support exists statements.');
+    }
+
+    /**
+     * Compile an insert statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @return string
+     */
+    public function compileInsert(Builder $query, array $values)
+    {
+        return json_encode($values);
+    }
+
+    /**
+     * Compile an insert and get ID statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @param  string  $sequence
+     * @return string
+     */
+    public function compileInsertGetId(Builder $query, $values, $sequence)
+    {
+        return $this->compileInsert($query, $values);
+    }
+
+    /**
+     * Compile an insert statement using a subquery into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $columns
+     * @param  string  $sql
+     * @return string
+     */
+    public function compileInsertUsing(Builder $query, array $columns, string $sql)
+    {
+        throw new RuntimeException('This database engine does not support inserting using a subquery.');
     }
 }

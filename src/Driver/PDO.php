@@ -1,13 +1,13 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Driver;
 
 use PDO as BasePDO;
+use RuntimeException;
 
 use Netflex\API\Contracts\APIClient;
 use Netflex\API\Facades\API;
 use Netflex\Query\Builder;
-use RuntimeException;
 
 final class PDO extends BasePDO
 {

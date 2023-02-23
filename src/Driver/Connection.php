@@ -1,6 +1,6 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Driver;
 
 use Closure;
 use Exception;
@@ -12,7 +12,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Connection as BaseConnection;
 
 use PDOStatement;
-use Netflex\Database\PDO;
+use Netflex\Database\Driver\PDO;
 
 class Connection extends BaseConnection
 {
@@ -103,6 +103,7 @@ class Connection extends BaseConnection
      */
     public function insert($query, $bindings = [])
     {
+        dd($query);
         throw new RuntimeException('This database engine does not support inserts.');
     }
 

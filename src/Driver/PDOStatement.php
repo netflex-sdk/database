@@ -1,13 +1,11 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Driver;
 
-use Exception;
 use GuzzleHttp\Exception\ServerException;
+
 use PDOException;
 use PDOStatement as BasePDOStatement;
-
-use Netflex\Query\Builder;
 
 final class PDOStatement extends BasePDOStatement
 {

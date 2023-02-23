@@ -1,11 +1,11 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\DatabaseManager;
 
-use Netflex\Database\Connection;
+use Netflex\Database\Driver\Connection;
 
 class DatabaseServiceProvider extends ServiceProvider
 {

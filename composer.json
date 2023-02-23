@@ -39,7 +39,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Netflex\\Database\\DatabaseServiceProvider"
+                "Netflex\\Database\\Providers\\DatabaseServiceProvider"
             ]
         }
     }
