@@ -13,6 +13,8 @@ final class PDO extends BasePDO
 {
     protected string $connection;
 
+    protected $lastInsertId = null;
+
     public function __construct(array $parameters)
     {
         parent::__construct('sqlite::memory:');
@@ -22,6 +24,25 @@ final class PDO extends BasePDO
     public function getAPIClient(): APIClient
     {
         return API::connection($this->connection);
+    }
+
+    public function setLastInsertId($id)
+    {
+        $this->lastInsertId = $id;
+    }
+
+    /**
+     * Returns the ID of the last inserted row or sequence value
+     * @param string|null $seqname
+     * @return string|false
+     **/
+    public function lastInsertId($seqname = null)
+    {
+        if ($this->lastInsertId) {
+            return $this->lastInsertId;
+        }
+
+        return false;
     }
 
     /**
@@ -103,16 +124,6 @@ final class PDO extends BasePDO
      * @return bool
      **/
     public function inTransaction(): bool
-    {
-        return false;
-    }
-
-    /**
-     * Returns the ID of the last inserted row or sequence value
-     * @param string|null $seqname
-     * @return string|false
-     **/
-    public function lastInsertId($name = null)
     {
         return false;
     }
