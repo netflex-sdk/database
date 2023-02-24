@@ -4,15 +4,21 @@ namespace Netflex\Database\Driver;
 
 use Closure;
 use Exception;
+use PDOStatement;
 use RuntimeException;
 
-use Illuminate\Database\QueryException;
-use Illuminate\Database\Events\StatementPrepared;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Connection as BaseConnection;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Support\Str;
-use PDOStatement;
+
 use Netflex\Database\Driver\PDO;
+use Netflex\Database\Driver\QueryGrammar;
+use Netflex\Database\Driver\Schema\Field;
+use Netflex\Database\Driver\Schema\SchemaGrammar;
+use Netflex\Database\Driver\Schema\SchemaBuilder;
+use Netflex\Database\Driver\Schema\Structure;
+use Netflex\Database\Exceptions\QueryException;
 
 class Connection extends BaseConnection
 {
@@ -157,6 +163,14 @@ class Connection extends BaseConnection
      */
     protected function insertEntry($structure, $data)
     {
+        if (!isset($data['name'])) {
+            $data['name'] = (string) Str::uuid();
+        }
+
+        if (!isset($data['revision_publish'])) {
+            $data['revision_publish'] = true;
+        }
+
         $pdo = $this->getPdo();
         $pdo->setLastInsertId(null);
         $client = $pdo->getApiClient();
@@ -181,7 +195,10 @@ class Connection extends BaseConnection
         $clause['_source'] = ['id'];
         $clause['size'] = 10000;
         $clause['index'] = $index;
-        $statement = $pdo->prepare($clause);
+        $statement = $pdo->prepare([
+            'command' => Command::SEARCH,
+            'arguments' => $clause
+        ]);
         $statement->execute();
         $results = collect($statement->fetchAll())->pluck('id');
         $affected = 0;
@@ -192,6 +209,7 @@ class Connection extends BaseConnection
                 'id' => $id,
                 'data' => $data,
             ]);
+
             $affected++;
         }
 
@@ -251,6 +269,10 @@ class Connection extends BaseConnection
      */
     protected function updateEntry($id, $data)
     {
+        if (!isset($data['revision_publish'])) {
+            $data['revision_publish'] = true;
+        }
+
         $pdo = $this->getPdo();
         $client = $pdo->getApiClient();
         $client->put('builder/structures/entry/' . $id, $data);
@@ -327,5 +349,47 @@ class Connection extends BaseConnection
     protected function getDefaultQueryGrammar()
     {
         return new QueryGrammar;
+    }
+
+    /**
+     * Get the default schema grammar instance.
+     *
+     * @return QueryGrammar
+     */
+    protected function getDefaultSchemaGrammar()
+    {
+        return new SchemaGrammar;
+    }
+
+    public function getSchemaBuilder()
+    {
+        return new SchemaBuilder($this);
+    }
+
+    /**
+     * Get a Doctrine Schema Column instance.
+     *
+     * @param  string  $table
+     * @param  string  $column
+     * @return \Doctrine\DBAL\Schema\Column
+     */
+    public function getDoctrineColumn($table, $column)
+    {
+        $table = Structure::normalizeIndexName($table);
+        $fields = [
+            ...array_map(fn ($field) => (object) [
+                'alias' => $field,
+                'type' => 'string'
+            ], Field::RESERVED_FIELDS),
+            ...$this->getPdo()
+                ->getAPIClient()
+                ->get('builder/structures/' . $table . '/fields')
+        ];
+
+        foreach ($fields as $field) {
+            if ($field->alias === $column) {
+                return new Field($field);
+            }
+        }
     }
 }

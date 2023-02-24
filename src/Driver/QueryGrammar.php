@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use Netflex\Query\Builder as QueryBuilder;
+use Netflex\Database\Driver\Command;
 
 class QueryGrammar extends Grammar
 {
@@ -60,7 +61,7 @@ class QueryGrammar extends Grammar
             )
         );
 
-        return $request;
+        return ['command' => Command::SEARCH, 'arguments' => $request];
     }
 
     /**
@@ -568,7 +569,6 @@ class QueryGrammar extends Grammar
     {
         return [
             'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
-            'id' => $query->wheres[0]['value'],
             'query' => $this->compileWheres($query),
             'data' => $values
         ];
@@ -578,7 +578,6 @@ class QueryGrammar extends Grammar
     {
         return [
             'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
-            'id' => $query->wheres[0]['value'],
             'query' => $this->compileWheres($query),
         ];
     }
@@ -594,5 +593,10 @@ class QueryGrammar extends Grammar
     public function compileInsertUsing(Builder $query, array $columns, string $sql)
     {
         throw new RuntimeException('This database engine does not support inserting using a subquery.');
+    }
+
+    public function compileTableExists()
+    {
+        return ['command' => Command::STRUCTURE_EXISTS];
     }
 }
