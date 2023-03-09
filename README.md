@@ -15,6 +15,7 @@ This package provides a database driver for Laravel that allows you to use the N
     * [Refresh data from API on save](#refresh-data-from-api-on-save)
     * [Automatically setting name of entries](#automatically-setting-name-of-entries)
 * [Limitations](#limitations)
+* [Todo](#todo)
 * [License](#license)
 
 ## Motivation / Why?
@@ -165,6 +166,14 @@ This will automatically generate a UUID based name for the entry, unless a name 
 ## Limitations
 
 This package is still in development, and is not yet feature complete.
+
+## Todo
+
+* Move field creation logic into the adapter
+* Implement more adapters
+    * Pages
+    * Customers
+    * Others?
 
 ## License
 
