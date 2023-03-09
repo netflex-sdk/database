@@ -10,6 +10,7 @@ This package provides a database driver for Laravel that allows you to use the N
         * [Configuration](#configuration)
 * [Eloquent](#eloquent)
     * [Models](#models)
+        * [Caveats](#caveats)
 * [Netflex specific functionality](#netflex-specific-functionality)
     * [Automatically respecting the publishing status of an entry](#automatically-respecting-the-publishing-status-of-an-entry)
     * [Refresh data from API on save](#refresh-data-from-api-on-save)
@@ -53,8 +54,10 @@ return [
 ];
 ```
 
-Note that the `adapter` property is required, and must be set to a valid adapter name. The following adapters are currently supported:
+Note that the `adapter` property is required if you want to be able to perform "write" operations, and must be set to a valid adapter name. The following adapters are currently supported:
 * `entry`
+
+If no adapter is specified, the connection will only work as a read-only connection, and you won't be interrogate the schema of the "databases".
 
 Also note that by using the `entry` adapter, if not otherwise configured, the `prefix` property will be implictly set to `entry_`.
 
@@ -134,6 +137,15 @@ class Article extends Model
 {
     protected $table = '10000';
 }
+```
+
+#### Caveats
+
+Since the Netflex API uses the field names `created` and `updated` for it's default timestamps, remember to configure that in your model, since Eloquent assumes `created_at` and `updated_at` by default.
+
+```php
+const CREATED_AT = 'created';
+const UPDATED_AT = 'updated';
 ```
 
 ## Netflex specific functionality
