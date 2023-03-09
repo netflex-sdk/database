@@ -116,7 +116,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Article extends Model
 {
-    protected $connection = 'structures';
+    protected $connection = 'netflex';
     protected $table = 'entry_10000';
 }
 ```
