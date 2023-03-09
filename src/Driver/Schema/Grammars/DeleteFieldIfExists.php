@@ -44,7 +44,7 @@ class DeleteFieldIfExists
 
     protected static function compileDeleteField(Blueprint $blueprint, $column)
     {
-        if (in_array($column, Field::RESERVED_FIELDS)) {
+        if (Field::isReserved($column)) {
             return null;
         }
 

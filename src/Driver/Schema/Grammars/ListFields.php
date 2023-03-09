@@ -17,7 +17,7 @@ class ListFields
      * Compile a alter field command.
      * @return array
      */
-    public static function compile(Grammar $grammar, string $table)
+    public static function compile(string $table)
     {
         if (Str::startsWith($table, 'entry_')) {
             $table = Str::after($table, 'entry_');;

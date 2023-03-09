@@ -308,7 +308,7 @@ class QueryGrammar extends Grammar
         if (is_string($where['value'])) {
             $where['value'] = str_replace('%', '*', $where['value']);
 
-            if ($where['type'] !== 'like') {
+            if ($where['operator'] !== 'like') {
                 $where['value'] = str_replace('*', '', $where['value']);
             }
         }

@@ -24,7 +24,7 @@ class SchemaGrammar extends Grammar
 
     public function compileColumnListing($table)
     {
-        return ListFields::compile($this, $table);
+        return ListFields::compile($table);
     }
 
     public function compileCreate(Blueprint $blueprint, $command, $connection)

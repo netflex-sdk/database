@@ -44,7 +44,7 @@ class CreateField
 
     protected static function compileCreateField(Blueprint $blueprint, $column)
     {
-        if (in_array($column->name, Field::RESERVED_FIELDS)) {
+        if (Field::isReserved($column->name)) {
             return null;
         }
 

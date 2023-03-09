@@ -5,7 +5,8 @@ namespace Netflex\Database\Driver;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
-
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use PDOException;
 use PDOStatement as BasePDOStatement;
 
@@ -242,6 +243,13 @@ final class PDOStatement extends BasePDOStatement
     protected function executeCreateStructure($request)
     {
         if (!$this->executeStructureExists($request)) {
+            $console = null;
+
+            if (App::runningInConsole()) {
+                $console = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $console->writeln('Creating search index for structure [' . $request['alias'] . ']...');
+            }
+
             $client = $this->pdo->getAPIClient();
 
             try {
@@ -260,17 +268,8 @@ final class PDOStatement extends BasePDOStatement
     protected function executeListFields($request)
     {
         try {
-            $this->result = array_values(
-                array_unique([
-                    ...Field::RESERVED_FIELDS,
-                    ...array_map(
-                        fn ($field) => $field->alias,
-                        $this->pdo
-                            ->getAPIClient()
-                            ->get('builder/structures/' . $request['structure'] . '/fields')
-                    )
-                ])
-            );
+            $fields = Field::getFields($this->pdo->getAPIClient(), $request['structure']);
+            $this->result = array_map(fn (Field $field) => $field->toArray(), $fields);
         } catch (Exception $e) {
             $this->errorCode = $e->getCode();
             $this->result = null;

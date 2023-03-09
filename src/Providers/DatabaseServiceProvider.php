@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\DatabaseManager;
 
 use Netflex\Database\Driver\Connection;
+use Netflex\Database\Adapters\EntryAdapter;
 
 class DatabaseServiceProvider extends ServiceProvider
 {
@@ -17,5 +18,7 @@ class DatabaseServiceProvider extends ServiceProvider
                 return new Connection($config);
             });
         });
+
+        $this->app->singleton('db.netflex.adapters.entry', fn () => new EntryAdapter());
     }
 }

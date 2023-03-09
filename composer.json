@@ -28,7 +28,8 @@
         "illuminate/support": "^8.0",
         "illuminate/database": "^8.0",
         "netflex/api": "^4.0",
-        "netflex/query-builder": "^4.0"
+        "netflex/query-builder": "^4.0",
+        "doctrine/dbal": "^2.0"
     },
     "require-dev": {
         "larapack/dd": "^1.1",

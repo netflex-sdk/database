@@ -18,11 +18,11 @@ class RenameField
      */
     public static function compile(Grammar $grammar, Blueprint $blueprint, Fluent $command, Connection $connection)
     {
-        if (in_array($command->to, Field::RESERVED_FIELDS)) {
+        if (Field::isReserved($command->to)) {
             return [];
         }
 
-        if (in_array($command->from, Field::RESERVED_FIELDS)) {
+        if (Field::isReserved($command->from)) {
             return [];
         }
 

@@ -11,14 +11,16 @@ use Netflex\Query\Builder;
 
 final class PDO extends BasePDO
 {
-    protected string $connection;
+    public bool $logging = false;
 
+    protected string $connection;
     protected $lastInsertId = null;
 
     public function __construct(array $parameters)
     {
         parent::__construct('sqlite::memory:');
         $this->connection = $parameters['connection'] ?? 'default';
+        $this->logging = $parameters['logging'] ?? false;
     }
 
     public function getAPIClient(): APIClient
