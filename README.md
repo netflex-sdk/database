@@ -2,7 +2,7 @@
 
 This package provides a database driver for Laravel that allows you to use the Netflex API as a database backend for your Laravel application.
 
-# Table of contents
+## Table of contents
 
 * [Motivation / Why?](#motivation--why)
     * [Installation](#installation)
