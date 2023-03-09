@@ -167,6 +167,14 @@ This will automatically generate a UUID based name for the entry, unless a name 
 
 This package is still in development, and is not yet feature complete.
 
+This package is not compatible with PHP >7.4. This is due to the signature of the PDO and PDOStatement classes of PHP having changed in PHP 8.0 and later.
+
+Once this package is feature complete, we will look into supporting PHP 8.0 and later. It should in theory be as simple as just updating the typing of the PDO stubs.
+
+One approach we could take here, to allow this driver to work on both 7.4 and later, is to move the PDO stubs into a separate package, witch one version for 7.4 and one for 8.0 and later.
+
+Then the clients composer client would install the appropriate version of the stubs package, depending on the PHP version.
+
 ## Todo
 
 * Move field creation logic into the adapter
