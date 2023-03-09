@@ -26,8 +26,7 @@ class Connection extends BaseConnection
 {
     protected string $name;
     protected string $connection;
-
-    protected DatabaseAdapter $adapter;
+    protected ?string $adapter = null;
 
     const DB_ADAPTERS = [
         'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
@@ -42,11 +41,15 @@ class Connection extends BaseConnection
         $this->connection = $config['connection'] ?? 'default';
 
         $this->setTablePrefix($config['prefix'] ?? '');
-        $this->setAdapter($config['adapter'] ?? '');
+        $this->setAdapter($config['adapter'] ?? null);
     }
 
-    protected function setAdapter(string $adapter)
+    protected function setAdapter(?string $adapter = null)
     {
+        if ($adapter === null) {
+            return;
+        }
+
         if (array_key_exists($adapter, static::DB_ADAPTERS)) {
             $adapter = static::DB_ADAPTERS[$adapter];
         }
@@ -59,15 +62,20 @@ class Connection extends BaseConnection
             $adapter = EntryAdapter::class;
         }
 
-        if (!$adapter) {
-            throw new RuntimeException('No adapter specified for connection [' . $this->name . ']');
+        $this->adapter = $adapter;
+    }
+
+    protected function getAdapter(): DatabaseAdapter
+    {
+        if ($adapter = $this->adapter) {
+            try {
+                return App::make($adapter);
+            } catch (Exception $e) {
+                throw new RuntimeException('Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']');
+            }
         }
 
-        try {
-            $this->adapter = App::make($adapter);
-        } catch (Exception $e) {
-            throw new RuntimeException('Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']');
-        }
+        throw new RuntimeException('No adapter specified for connection [' . $this->name . ']');
     }
 
     /**
@@ -209,7 +217,7 @@ class Connection extends BaseConnection
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        return $this->adapter->insert($this->getPdo(), $payload, $table);
+        return $this->getAdapter()->insert($this->getPdo(), $payload, $table);
     }
 
     /**
@@ -242,7 +250,7 @@ class Connection extends BaseConnection
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        return $this->adapter->update($this->getPdo(), (int) $id, $payload, $table);
+        return $this->getAdapter()->update($this->getPdo(), (int) $id, $payload, $table);
     }
 
     /**
@@ -269,7 +277,7 @@ class Connection extends BaseConnection
             $table = Str::after($table, $this->getTablePrefix());
         }
 
-        return $this->adapter->delete($this->getPdo(), (int) $id, $table);
+        return $this->getAdapter()->delete($this->getPdo(), (int) $id, $table);
     }
 
     /**
