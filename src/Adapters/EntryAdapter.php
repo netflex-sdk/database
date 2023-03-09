@@ -3,20 +3,17 @@
 namespace Netflex\Database\Adapters;
 
 use Exception;
-
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Str;
 
 use Netflex\Database\Driver\PDO;
 use Netflex\Database\Contracts\DatabaseAdapter;
+use RuntimeException;
 
 final class EntryAdapter implements DatabaseAdapter
 {
     public function insert(PDO $connection, array $data, $relation = null): bool
     {
-        if (!isset($data['name'])) {
-            $data['name'] = (string) Str::uuid();
-        }
-
         if (!isset($data['revision_publish'])) {
             $data['revision_publish'] = true;
         }
@@ -32,6 +29,17 @@ final class EntryAdapter implements DatabaseAdapter
 
             return true;
         } catch (Exception $e) {
+            if ($e instanceof ClientException) {
+                $response = json_decode($e->getResponse()->getBody());
+
+                if (isset($response->error)) {
+                    foreach ($response->error->errors as $type => $messages) {
+                        if (count($messages)) {
+                            throw new RuntimeException(reset($messages));
+                        }
+                    }
+                }
+            }
             return false;
         }
     }

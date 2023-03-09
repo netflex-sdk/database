@@ -12,8 +12,8 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
+use Netflex\Database\Adapters\EntryAdapter;
 use Netflex\Database\Contracts\DatabaseAdapter;
-use Netflex\Database\Contracts\NetflexWriteAdapter;
 use Netflex\Database\Exceptions\QueryException;
 
 use Netflex\Database\Driver\Doctrine\Driver as DoctrineDriver;
@@ -26,7 +26,12 @@ class Connection extends BaseConnection
 {
     protected string $name;
     protected string $connection;
+
     protected DatabaseAdapter $adapter;
+
+    const DB_ADAPTERS = [
+        'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
+    ];
 
     public function __construct(array $config)
     {
@@ -40,21 +45,23 @@ class Connection extends BaseConnection
         $this->setAdapter($config['adapter'] ?? '');
     }
 
-    protected function setAdapter(string $adapterType)
+    protected function setAdapter(string $adapter)
     {
-        if ($adapterType === 'entry' && !$this->getTablePrefix()) {
+        if (array_key_exists($adapter, static::DB_ADAPTERS)) {
+            $adapter = static::DB_ADAPTERS[$adapter];
+        }
+
+        if ($adapter === EntryAdapter::class && !$this->getTablePrefix()) {
             $this->setTablePrefix('entry_');
         }
 
-        if (!$adapterType && $this->getTablePrefix() === 'entry_') {
-            $adapterType = 'entry';
+        if (!$adapter && $this->getTablePrefix() === 'entry_') {
+            $adapter = EntryAdapter::class;
         }
 
-        if (!$adapterType) {
+        if (!$adapter) {
             throw new RuntimeException('No adapter specified for connection [' . $this->name . ']');
         }
-
-        $adapter = "db.netflex.adapters.$adapterType";
 
         try {
             $this->adapter = App::make($adapter);
