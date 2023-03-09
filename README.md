@@ -22,7 +22,7 @@ This package provides a database driver for Laravel that allows you to use the N
 
 Laravel provides a powerful database abstraction layer that allows you to use a variety of different database backends. Most third party Laravel packages that and first party functionality assumes that you are using a relational database backend.
 
-This package allows you to use the Netflex API as a database backend for your Laravel application, briding the gapp between the Netflex API and Laravel.
+This package allows you to use the Netflex API as a database backend for your Laravel application, bridging the gap between the Netflex API and Laravel.
 
 This again allows you to use most of Laravels functionality out of the box, while still using the Netflex API as your backend.
 
