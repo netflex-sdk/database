@@ -49,10 +49,10 @@ class DeleteField
         }
 
         return [
-            'command' => Command::DELETE_STRUCTURE_FIELD,
+            'command' => Command::TABLE_COLUMN_DROP,
             'arguments' => [
-                'structure' => $blueprint->getTable(),
-                'alias' => $column,
+                'table' => $blueprint->getTable(),
+                'column' => $column,
             ]
         ];
     }

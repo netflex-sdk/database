@@ -49,10 +49,10 @@ class DeleteFieldIfExists
         }
 
         return [
-            'command' => Command::DELETE_STRUCTURE_FIELD_IF_EXISTS,
+            'command' => Command::TABLE_COLUMN_DROP_IF_EXISTS,
             'arguments' => [
-                'structure' => $blueprint->getTable(),
-                'alias' => $column,
+                'table' => $blueprint->getTable(),
+                'column' => $column,
             ]
         ];
     }

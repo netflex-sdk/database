@@ -19,9 +19,9 @@ class DeleteStructureIfExists
     {
         return [
             [
-                'command' => Command::DELETE_STRUCTURE_IF_EXISTS,
+                'command' => Command::TABLE_DROP_IF_EXISTS,
                 'arguments' => [
-                    'alias' => $blueprint->getTable()
+                    'table' => $blueprint->getTable()
                 ]
             ]
         ];

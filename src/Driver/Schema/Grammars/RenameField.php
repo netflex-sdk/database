@@ -28,9 +28,9 @@ class RenameField
 
         return [
             [
-                'command' => Command::RENAME_STRUCTURE_FIELD,
+                'command' => Command::TABLE_COLUMN_ALTER,
                 'arguments' => [
-                    'structure' => $blueprint->getTable(),
+                    'table' => $blueprint->getTable(),
                     'name' => Field::normalizeName($command->to),
                     'from' => $command->from,
                     'to' => $command->to

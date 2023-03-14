@@ -21,10 +21,10 @@ class CreateStructure
     {
         return [
             [
-                'command' => Command::CREATE_STRUCTURE,
+                'command' => Command::TABLE_CREATE,
                 'arguments' => [
                     'name' => Structure::normalizeName($blueprint->getTable()),
-                    'alias' => $blueprint->getTable()
+                    'table' => $blueprint->getTable()
                 ],
             ],
             ...CreateField::compile($grammar, $blueprint, $command, $connection)

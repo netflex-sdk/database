@@ -24,9 +24,9 @@ class ListFields
         }
 
         return [
-            'command' => Command::LIST_FIELDS,
+            'command' => Command::TABLE_COLUMNS_SELECT,
             'arguments' => [
-                'structure' => $table,
+                'table' => $table,
             ]
         ];
     }

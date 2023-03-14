@@ -61,7 +61,7 @@ class QueryGrammar extends Grammar
             )
         );
 
-        return ['command' => Command::SEARCH, 'arguments' => $request];
+        return ['command' => Command::SELECT, 'arguments' => $request];
     }
 
     /**
@@ -173,7 +173,7 @@ class QueryGrammar extends Grammar
         }
 
         return $request->mapWithKeys(function ($value, $key) {
-            if (in_array($key, ['index', 'size', 'from']) && is_array($value)) {
+            if (in_array($key, ['table', 'size', 'from']) && is_array($value)) {
                 $value = end($value);
             }
 
@@ -208,7 +208,7 @@ class QueryGrammar extends Grammar
      */
     protected function compileFrom(Builder $query, $table)
     {
-        return ['index' => $this->wrapTable($table)];
+        return ['table' => $this->wrapTable($table)];
     }
 
     protected function wrapValue($value)
@@ -547,7 +547,7 @@ class QueryGrammar extends Grammar
     public function compileInsert(Builder $query, array $values)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'data' => $values
         ];
     }
@@ -568,7 +568,7 @@ class QueryGrammar extends Grammar
     public function compileUpdate(Builder $query, array $values)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'query' => $this->compileWheres($query),
             'data' => $values
         ];
@@ -577,7 +577,7 @@ class QueryGrammar extends Grammar
     public function compileDelete(Builder $query)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'query' => $this->compileWheres($query),
         ];
     }
@@ -597,6 +597,6 @@ class QueryGrammar extends Grammar
 
     public function compileTableExists()
     {
-        return ['command' => Command::STRUCTURE_EXISTS];
+        return ['command' => Command::TABLE_EXISTS];
     }
 }

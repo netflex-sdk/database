@@ -3,14 +3,16 @@
 namespace Netflex\Database\Driver;
 
 use PDO as BasePDO;
-use RuntimeException;
 
 use Netflex\API\Contracts\APIClient;
 use Netflex\API\Facades\API;
+use Netflex\Database\Contracts\DatabaseAdapter;
 use Netflex\Query\Builder;
 
 final class PDO extends BasePDO
 {
+    protected DatabaseAdapter $adapter;
+
     public bool $logging = false;
 
     protected string $connection;
@@ -21,6 +23,16 @@ final class PDO extends BasePDO
         parent::__construct('sqlite::memory:');
         $this->connection = $parameters['connection'] ?? 'default';
         $this->logging = $parameters['logging'] ?? false;
+    }
+
+    public function setAdapter(DatabaseAdapter $adapter)
+    {
+        $this->adapter = $adapter;
+    }
+
+    public function getAdapter(): DatabaseAdapter
+    {
+        return $this->adapter;
     }
 
     public function getAPIClient(): APIClient
@@ -91,6 +103,7 @@ final class PDO extends BasePDO
     {
         $statement = new PDOStatement($this, $query);
         $statement->execute();
+
         return $statement->affectedRows;
     }
 

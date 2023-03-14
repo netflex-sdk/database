@@ -50,9 +50,9 @@ class CreateField
 
         $field = [
             'name' => Field::normalizeName($column->name),
-            'structure' => $blueprint->getTable(),
+            'table' => $blueprint->getTable(),
             'type' => $column->type,
-            'alias' => $column->name,
+            'column' => $column->name,
         ];
 
         $config = [];
@@ -69,7 +69,7 @@ class CreateField
         }
 
         return [
-            'command' => Command::CREATE_STRUCTURE_FIELD,
+            'command' => Command::TABLE_COLUMN_ADD,
             'arguments' => $field
         ];
     }

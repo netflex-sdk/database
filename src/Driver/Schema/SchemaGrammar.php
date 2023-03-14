@@ -5,6 +5,7 @@ namespace Netflex\Database\Driver\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Grammars\Grammar;
 
+use Netflex\Database\Driver\Connection;
 use Netflex\Database\Driver\Command;
 use Netflex\Database\Driver\Schema\Grammars\CreateField;
 use Netflex\Database\Driver\Schema\Grammars\CreateStructure;
@@ -17,9 +18,16 @@ use Netflex\Database\Driver\Schema\Grammars\RenameField;
 
 class SchemaGrammar extends Grammar
 {
+    protected Connection $connection;
+
+    public function __construct(Connection $connection)
+    {
+        $this->connection = $connection;
+    }
+
     public function compileTableExists()
     {
-        return Command::STRUCTURE_EXISTS;
+        return Command::TABLE_EXISTS;
     }
 
     public function compileColumnListing($table)

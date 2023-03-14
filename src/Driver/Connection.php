@@ -18,6 +18,7 @@ use Netflex\Database\Exceptions\QueryException;
 
 use Netflex\Database\Driver\Doctrine\Driver as DoctrineDriver;
 use Netflex\Database\Driver\PDO;
+use Netflex\Database\Driver\PDOStatement as DriverPDOStatement;
 use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
@@ -42,6 +43,7 @@ class Connection extends BaseConnection
 
         $this->setTablePrefix($config['prefix'] ?? '');
         $this->setAdapter($config['adapter'] ?? null);
+        $pdo->setAdapter($this->getAdapter());
     }
 
     protected function setAdapter(?string $adapter = null)
@@ -162,10 +164,10 @@ class Connection extends BaseConnection
 
         $clause['_source'] = ['id'];
         $clause['size'] = 10000;
-        $clause['index'] = $index;
+        $clause['table'] = $index;
 
         $statement = $pdo->prepare([
-            'command' => Command::SEARCH,
+            'command' => Command::SELECT,
             'arguments' => $clause
         ]);
 
@@ -176,7 +178,7 @@ class Connection extends BaseConnection
 
         foreach ($results as $id) {
             if ($callback([
-                'index' => $index,
+                'table' => $index,
                 'id' => $id,
                 'data' => $data,
             ])) {
@@ -196,14 +198,14 @@ class Connection extends BaseConnection
      */
     public function insert($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $data = $query['data'] ?? null;
         $payload = [];
         $table = $index;
 
         if (array_key_first($data) === 0) {
             foreach ($data as $item) {
-                $this->insert(['index' => $index, 'data' => $item], $bindings);
+                $this->insert(['table' => $index, 'data' => $item], $bindings);
             }
 
             return true;
@@ -217,7 +219,16 @@ class Connection extends BaseConnection
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        return $this->getAdapter()->insert($this->getPdo(), $payload, $table);
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::INSERT,
+                'arguments' => [
+                    'table' => $table,
+                    'payload' => $payload,
+                ]
+            ]);
+
+        return $statement->execute();
     }
 
     /**
@@ -229,7 +240,7 @@ class Connection extends BaseConnection
      */
     public function update($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $id = $query['id'] ?? false;
         $clause = $query['query'] ?? null;
         $data = $query['data'] ?? null;
@@ -250,7 +261,17 @@ class Connection extends BaseConnection
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        return $this->getAdapter()->update($this->getPdo(), (int) $id, $payload, $table);
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::UPDATE,
+                'arguments' => [
+                    'id' => $id,
+                    'table' => $table,
+                    'payload' => $payload,
+                ]
+            ]);
+
+        return $statement->execute();
     }
 
     /**
@@ -262,7 +283,7 @@ class Connection extends BaseConnection
      */
     public function delete($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $id = $query['id'] ?? false;
         $clause = $query['query'] ?? null;
         $table = $index;
@@ -277,7 +298,16 @@ class Connection extends BaseConnection
             $table = Str::after($table, $this->getTablePrefix());
         }
 
-        return $this->getAdapter()->delete($this->getPdo(), (int) $id, $table);
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::DELETE,
+                'arguments' => [
+                    'id' => $id,
+                    'table' => $table
+                ]
+            ]);
+
+        return $statement->execute();
     }
 
     /**
@@ -297,7 +327,7 @@ class Connection extends BaseConnection
      */
     protected function getDefaultSchemaGrammar()
     {
-        return new SchemaGrammar;
+        return new SchemaGrammar($this);
     }
 
     public function getSchemaBuilder()

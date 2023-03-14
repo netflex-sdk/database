@@ -19,7 +19,7 @@ class SchemaBuilder extends Builder
 
         parent::__construct($connection);
         $this->client = $connection->getPdo()->getAPIClient();
-        $this->grammar = new SchemaGrammar();
+        $this->grammar = new SchemaGrammar($connection);
     }
 
     public function hasTable($table)

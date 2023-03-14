@@ -11,16 +11,19 @@ use PDOException;
 use PDOStatement as BasePDOStatement;
 
 use Illuminate\Support\Str;
+use Netflex\Database\Contracts\DatabaseAdapter;
 use Netflex\Database\Driver\Schema\Field;
 
 final class PDOStatement extends BasePDOStatement
 {
     protected PDO $pdo;
+    protected DatabaseAdapter $adapter;
+
     protected $statement = null;
     protected ?array $result = null;
 
-    protected $errorCode = null;
-    protected $errorInfo = [];
+    public $errorCode = null;
+    public $errorInfo = [];
 
     public $affectedRows = 0;
 
@@ -28,6 +31,17 @@ final class PDOStatement extends BasePDOStatement
     {
         $this->pdo = $pdo;
         $this->statement = $statement;
+        $this->adapter = $this->pdo->getAdapter();
+    }
+
+    public function getPDO(): PDO
+    {
+        return $this->pdo;
+    }
+
+    public function getAdapter(): DatabaseAdapter
+    {
+        return $this->adapter;
     }
 
     public function errorCode(): ?string
@@ -103,230 +117,17 @@ final class PDOStatement extends BasePDOStatement
         return false;
     }
 
-    protected function performApiAction($action, $request)
+    protected function performAction($action, $request)
     {
-        $command = 'execute' . Str::camel($action);
+        $adapter = $this->getAdapter();
 
-        if (method_exists($this, $command)) {
-            return $this->$command($request);
+        if (method_exists($adapter, $action)) {
+            return call_user_func_array([$adapter, $action], [$this, $request, function ($result) {
+                $this->result = $result;
+            }]);
         }
 
         throw new PDOException('Unsupported command [' . $action . '].');
-    }
-
-    protected function executeCreateStructureField($request)
-    {
-        if (!$this->executeStructureFieldExists($request)) {
-            $structure = $request['structure'];
-            unset($request['structure']);
-
-            $client = $this->pdo->getAPIClient();
-
-            try {
-                $client->post('builder/structures/' . $structure . '/field', $request);
-            } catch (Exception $e) {
-                throw new PDOException($e->getMessage(), $e->getCode());
-            }
-        }
-
-        return true;
-    }
-
-    protected function executeRenameStructureField($request)
-    {
-        $client = $this->pdo->getAPIClient();
-        $fields = $client->get('builder/structures/' . $request['structure'] . '/fields');
-
-        foreach ($fields as $field) {
-            if ($field->alias === $request['from']) {
-                $client->put('builder/structures/field/' . $field->id, [
-                    'name' => $request['name'],
-                    'alias' => $request['to']
-                ]);
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected function executeDeleteStructureField($request)
-    {
-        $client = $this->pdo->getAPIClient();
-        $fields = $client->get('builder/structures/' . $request['structure'] . '/fields');
-
-        foreach ($fields as $field) {
-            if ($field->alias === $request['alias']) {
-                $client->delete('builder/structures/field/' . $field->id);
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected function executeDeleteStructureFieldIfExists($request)
-    {
-        $this->executeStructureFieldExists($request);
-
-        return true;
-    }
-
-    protected function executeDeleteStructure($request)
-    {
-        $client = $this->pdo->getAPIClient();
-
-        try {
-            $client->delete('builder/structures/' . $request['alias']);
-        } catch (Exception $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function executeDeleteStructureIfExists($request)
-    {
-        if ($this->executeStructureExists($request)) {
-            return $this->executeDeleteStructure($request);
-        }
-
-        return true;
-    }
-
-    protected function executeStructureExists($request)
-    {
-        $client = $this->pdo->getAPIClient();
-
-        try {
-            $result = $client->get('builder/structures/' . $request['alias']);
-
-            if ($result && isset($result->id)) {
-                return true;
-            }
-
-            return false;
-        } catch (ClientException $e) {
-            if ($e->getResponse()->getStatusCode() === 404) {
-                return false;
-            }
-
-            $this->errorCode = $e->getCode();
-            $this->errorInfo = [$e->getCode(), $e->getCode(), $e->getMessage()];
-
-            return false;
-        }
-    }
-
-    protected function executeStructureFieldExists($request)
-    {
-        $client = $this->pdo->getAPIClient();
-        $structure = $request['structure'];
-
-        try {
-            $fields = $client->get('builder/structures/' . $structure . '/fields');
-
-            foreach ($fields as $field) {
-                if ($field->alias === $request['alias']) {
-                    return true;
-                }
-            }
-        } catch (Exception $e) {
-            throw new PDOException($e->getMessage(), $e->getCode());
-        }
-
-        return false;
-    }
-
-    protected function executeCreateStructure($request)
-    {
-        if (!$this->executeStructureExists($request)) {
-            $console = null;
-
-            if (App::runningInConsole()) {
-                $console = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $console->writeln('Creating search index for structure [' . $request['alias'] . ']...');
-            }
-
-            $client = $this->pdo->getAPIClient();
-
-            try {
-                $client->post('builder/structures', $request);
-            } catch (Exception $e) {
-                $this->errorCode = $e->getCode();
-                $this->errorInfo = [$e->getCode(), $e->getCode(), $e->getMessage()];
-
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected function executeListFields($request)
-    {
-        try {
-            $fields = Field::getFields($this->pdo->getAPIClient(), $request['structure']);
-            $this->result = array_map(fn (Field $field) => $field->toArray(), $fields);
-        } catch (Exception $e) {
-            $this->errorCode = $e->getCode();
-            $this->result = null;
-
-            throw new PDOException($e->getMessage(), $e->getCode(), $e);
-        }
-
-        return true;
-    }
-
-    protected function executeSearch($request)
-    {
-        try {
-            $result = $this->pdo
-                ->getAPIClient()
-                ->post('search/raw', $request, true);
-
-            $this->affectedRows = $result['hits']['total'] ?? 0;
-
-            if (isset($result['aggregations'])) {
-                $aggregations = $result['aggregations'];
-
-                if (isset($aggregations['aggregate']) && array_key_exists('value', $aggregations['aggregate'])) {
-                    $aggregations['aggregate'] = $aggregations['aggregate']['value'];
-                }
-
-                $result['hits']['hits'][] = [
-                    '_source' => $aggregations
-                ];
-            }
-
-            if (isset($result['hits']['hits'])) {
-                $this->affectedRows = count($result['hits']['hits']);
-            }
-
-            $this->result = $result;
-
-            return true;
-        } catch (ServerException $e) {
-            $response = $e->getResponse();
-            $code = $response->getStatusCode();
-            $message = $e->getMessage();
-
-            if ($esResponse = json_decode($response->getBody())) {
-                if ($esResponse->error) {
-                    if ($esError = json_decode($esResponse->error->message)) {
-                        $message = $esError->error->root_cause[0]->reason;
-                    }
-                }
-            }
-
-            $this->errorCode = $code;
-            $this->errorInfo = [get_class($e), $code, $message];
-            $this->result = null;
-
-            throw new PDOException($message, $code, $e);
-        }
     }
 
     public function execute($params = null): bool
@@ -338,7 +139,9 @@ final class PDOStatement extends BasePDOStatement
             $arguments = $this->statement['arguments'] ?? [];
 
             try {
-                if ($result = $this->performApiAction($command, $arguments)) {
+                $result = $this->performAction($command, $arguments);
+
+                if ($result !== null) {
                     return $result;
                 }
 

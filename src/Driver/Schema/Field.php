@@ -99,7 +99,7 @@ final class Field
             [
                 ...collect(static::RESERVED_FIELDS)
                     ->map(fn ($field, $key) => [
-                        'field'  => $key,
+                        'column'  => $key,
                         'type'   => $field['type'],
                         'notnull' => $field['notnull'] ?? false,
                         'default' => $field['default'] ?? null,
@@ -108,7 +108,7 @@ final class Field
                     ])->values(),
                 ...array_map(
                     fn ($field) => [
-                        'field'  => $field['alias'],
+                        'column'  => $field['alias'],
                         'type'   => $field['type'],
                         'notnull' => false,
                         'default' => data_get($field, 'config.default_value.value', null),
@@ -138,7 +138,7 @@ final class Field
 
     public function name(): string
     {
-        return $this->field['field'];
+        return $this->field['column'];
     }
 
     public function type(): Type

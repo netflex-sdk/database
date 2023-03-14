@@ -19,9 +19,9 @@ class DeleteStructure
     {
         return [
             [
-                'command' => Command::DELETE_STRUCTURE,
+                'command' => Command::TABLE_DROP,
                 'arguments' => [
-                    'alias' => $blueprint->getTable()
+                    'column' => $blueprint->getTable()
                 ]
             ]
         ];
