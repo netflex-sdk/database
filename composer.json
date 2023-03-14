@@ -18,11 +18,14 @@
             "Netflex\\Database\\": "src/"
         }
     },
+    "minimum-stability": "RC",
+    "prefer-stable": true,
     "require": {
         "php": "^7.4|^8.0",
         "illuminate/support": "^8.0|^9.0|^10.0",
         "illuminate/database": "^8.0|^9.0|^10.0",
         "netflex/api": "^4.0",
+        "netflex/dbal": "^1.0|^2.0",
         "netflex/query-builder": "^4.0",
         "doctrine/dbal": "^2.0|^3.0"
     },
