@@ -12,13 +12,14 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
-use Netflex\Database\Adapters\EntryAdapter;
-use Netflex\Database\Contracts\DatabaseAdapter;
-use Netflex\Database\Exceptions\QueryException;
 
+use Netflex\DBAL\PDO;
+use Netflex\DBAL\Command;
+use Netflex\DBAL\Contracts\DatabaseAdapter;
+
+use Netflex\Database\Adapters\EntryAdapter;
+use Netflex\Database\Exceptions\QueryException;
 use Netflex\Database\Driver\Doctrine\Driver as DoctrineDriver;
-use Netflex\Database\Driver\PDO;
-use Netflex\Database\Driver\PDOStatement as DriverPDOStatement;
 use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
@@ -30,6 +31,7 @@ class Connection extends BaseConnection
     protected ?string $adapter = null;
 
     const DB_ADAPTERS = [
+        'default' => \Netflex\DBAL\Adapters\ReadOnlyAdapter::class,
         'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
     ];
 
@@ -42,7 +44,7 @@ class Connection extends BaseConnection
         $this->connection = $config['connection'] ?? 'default';
 
         $this->setTablePrefix($config['prefix'] ?? '');
-        $this->setAdapter($config['adapter'] ?? null);
+        $this->setAdapter($config['adapter'] ?? 'default');
         $pdo->setAdapter($this->getAdapter());
     }
 

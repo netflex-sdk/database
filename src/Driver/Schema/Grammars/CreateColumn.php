@@ -7,24 +7,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\Database\Driver\Command;
-use Netflex\Database\Driver\Schema\Field;
+use Netflex\DBAL\Command;
+use Netflex\DBAL\Column;
 
-class CreateField
+class CreateColumn
 {
-    protected static $reservedFields = [
-        'id',
-        'name',
-        'directory_id',
-        'revision',
-        'published',
-        'userid',
-        'use_time',
-        'start',
-        'stop',
-        'public',
-    ];
-
     /**
      * Compile a create field command.
      * @return array
@@ -44,12 +31,12 @@ class CreateField
 
     protected static function compileCreateField(Blueprint $blueprint, $column)
     {
-        if (Field::isReserved($column->name)) {
+        if (Column::isReserved($column->name)) {
             return null;
         }
 
         $field = [
-            'name' => Field::normalizeName($column->name),
+            'name' => Column::normalizeName($column->name),
             'table' => $blueprint->getTable(),
             'type' => $column->type,
             'column' => $column->name,

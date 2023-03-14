@@ -2,13 +2,12 @@
 
 namespace Netflex\Database\Driver\Doctrine;
 
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
-
+use Netflex\DBAL\Column;
 use Netflex\Database\Driver\Connection;
+
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Connection as DoctrineConnection;
-use Netflex\Database\Driver\Schema\Field;
-use Netflex\Database\Driver\Schema\Grammars\ListFields;
-use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 
 class SchemaManager extends AbstractSchemaManager
 {
@@ -21,8 +20,8 @@ class SchemaManager extends AbstractSchemaManager
     }
 
     /**
-     * @param Field $tableColumn
-     * @return Column
+     * @param Column $tableColumn
+     * @return DoctrineColumn
      */
     protected function _getPortableTableColumnDefinition($tableColumn)
     {
@@ -31,7 +30,7 @@ class SchemaManager extends AbstractSchemaManager
 
     public function listTableColumns($table, $database = null)
     {
-        $fields = Field::getFields($this->connection->getPdo()->getAPIClient(), $table);;
+        $fields = Column::getFields($this->connection->getPdo()->getAPIClient(), $table);;
         return array_map(fn ($field) => $this->_getPortableTableColumnDefinition($field), $fields);
     }
 

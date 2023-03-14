@@ -3,8 +3,6 @@
 namespace Netflex\Database\Driver\Doctrine;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
-use Netflex\Database\Driver\Schema\Grammars\ListFields;
 
 class Platform extends AbstractPlatform
 {

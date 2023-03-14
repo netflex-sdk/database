@@ -7,9 +7,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\Database\Driver\Command;
+use Netflex\DBAL\Command;
 
-class DeleteStructureIfExists
+class DropTable
 {
     /**
      * Compile a delete structure command.
@@ -19,9 +19,9 @@ class DeleteStructureIfExists
     {
         return [
             [
-                'command' => Command::TABLE_DROP_IF_EXISTS,
+                'command' => Command::TABLE_DROP,
                 'arguments' => [
-                    'table' => $blueprint->getTable()
+                    'column' => $blueprint->getTable()
                 ]
             ]
         ];

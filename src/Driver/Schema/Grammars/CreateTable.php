@@ -7,11 +7,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\Database\Driver\Command;
-use Netflex\Database\Driver\Schema\Structure;
-use Netflex\Database\Driver\Schema\Grammars\CreateField;
+use Netflex\DBAL\Command;
+use Netflex\DBAL\Table;
+use Netflex\Database\Driver\Schema\Grammars\CreateColumn;
 
-class CreateStructure
+class CreateTable
 {
     /**
      * Compile a create field command.
@@ -23,11 +23,11 @@ class CreateStructure
             [
                 'command' => Command::TABLE_CREATE,
                 'arguments' => [
-                    'name' => Structure::normalizeName($blueprint->getTable()),
+                    'name' => Table::normalizeName($blueprint->getTable()),
                     'table' => $blueprint->getTable()
                 ],
             ],
-            ...CreateField::compile($grammar, $blueprint, $command, $connection)
+            ...CreateColumn::compile($grammar, $blueprint, $command, $connection)
         ];
     }
 }

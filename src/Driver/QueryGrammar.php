@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use Netflex\Query\Builder as QueryBuilder;
-use Netflex\Database\Driver\Command;
+use Netflex\DBAL\Command;
 
 class QueryGrammar extends Grammar
 {

@@ -8,69 +8,19 @@ use RuntimeException;
 use PDOException;
 
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 
-use Netflex\Database\Driver\PDOStatement;
-use Netflex\Database\Contracts\DatabaseAdapter;
-use Netflex\Database\Driver\Command;
-use Netflex\Database\Driver\Schema\Field;
+use Netflex\DBAL\Adapters\AbstractAdapter;
+use Netflex\DBAL\PDOStatement;
+use Netflex\DBAL\Command;
+use Netflex\DBAL\Column;
+use Netflex\DBAL\Concerns\PerformsQueries;
 
-final class EntryAdapter implements DatabaseAdapter
+final class EntryAdapter extends AbstractAdapter
 {
-    public function select(PDOStatement $statement, array $arguments, Closure $callback): bool
-    {
-        $arguments['index'] = $arguments['table'];
-        unset($arguments['table']);
-
-        try {
-            $result = $statement->getPDO()
-                ->getAPIClient()
-                ->post('search/raw', $arguments, true);
-
-            $statement->affectedRows = $result['hits']['total'] ?? 0;
-
-            if (isset($result['aggregations'])) {
-                $aggregations = $result['aggregations'];
-
-                if (isset($aggregations['aggregate']) && array_key_exists('value', $aggregations['aggregate'])) {
-                    $aggregations['aggregate'] = $aggregations['aggregate']['value'];
-                }
-
-                $result['hits']['hits'][] = [
-                    '_source' => $aggregations
-                ];
-            }
-
-            if (isset($result['hits']['hits'])) {
-                $statement->affectedRows = count($result['hits']['hits']);
-            }
-
-            $callback($result);
-
-            return true;
-        } catch (ServerException $e) {
-            $response = $e->getResponse();
-            $code = $response->getStatusCode();
-            $message = $e->getMessage();
-
-            if ($esResponse = json_decode($response->getBody())) {
-                if ($esResponse->error) {
-                    if ($esError = json_decode($esResponse->error->message)) {
-                        $message = $esError->error->root_cause[0]->reason;
-                    }
-                }
-            }
-
-            $statement->errorCode = $code;
-            $statement->errorInfo = [get_class($e), $code, $message];
-            $callback(null);
-
-            throw new PDOException($message, $code, $e);
-        }
-    }
+    use PerformsQueries;
 
     public function insert(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
@@ -232,8 +182,8 @@ final class EntryAdapter implements DatabaseAdapter
         $table = $arguments['table'];
 
         try {
-            $result = Field::getFields($statement->getPDO()->getAPIClient(), $table);
-            $callback(array_map(fn (Field $field) => $field->toArray(), $result));
+            $result = Column::getFields($statement->getPDO()->getAPIClient(), $table);
+            $callback(array_map(fn (Column $field) => $field->toArray(), $result));
             return true;
         } catch (Exception $e) {
             return false;
@@ -279,7 +229,6 @@ final class EntryAdapter implements DatabaseAdapter
 
             $arguments['alias'] = $arguments['column'];
             unset($arguments['column']);
-            dd($arguments);
 
             try {
                 $client->post('builder/structures/' . $table . '/field', $arguments);

@@ -8,6 +8,8 @@ use Illuminate\Database\DatabaseManager;
 use Netflex\Database\Driver\Connection;
 use Netflex\Database\Adapters\EntryAdapter;
 
+use Netflex\DBAL\Adapters\ReadOnlyAdapter;
+
 class DatabaseServiceProvider extends ServiceProvider
 {
     public function register()
@@ -19,6 +21,7 @@ class DatabaseServiceProvider extends ServiceProvider
             });
         });
 
-        $this->app->singleton('db.netflex.adapters.entry', fn () => new EntryAdapter());
+        $this->app->singleton('db.netflex.adapters.default', fn () => new ReadOnlyAdapter);
+        $this->app->singleton('db.netflex.adapters.entry', fn () => new EntryAdapter);
     }
 }

@@ -7,10 +7,10 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\Database\Driver\Schema\Field;
-use Netflex\Database\Driver\Command;
+use Netflex\DBAL\Column;
+use Netflex\DBAL\Command;
 
-class RenameField
+class AlterColumn
 {
     /**
      * Compile a alter field command.
@@ -18,11 +18,11 @@ class RenameField
      */
     public static function compile(Grammar $grammar, Blueprint $blueprint, Fluent $command, Connection $connection)
     {
-        if (Field::isReserved($command->to)) {
+        if (Column::isReserved($command->to)) {
             return [];
         }
 
-        if (Field::isReserved($command->from)) {
+        if (Column::isReserved($command->from)) {
             return [];
         }
 
@@ -31,7 +31,7 @@ class RenameField
                 'command' => Command::TABLE_COLUMN_ALTER,
                 'arguments' => [
                     'table' => $blueprint->getTable(),
-                    'name' => Field::normalizeName($command->to),
+                    'name' => Column::normalizeName($command->to),
                     'from' => $command->from,
                     'to' => $command->to
                 ]

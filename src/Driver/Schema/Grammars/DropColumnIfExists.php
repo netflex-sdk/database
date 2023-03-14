@@ -7,24 +7,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\Database\Driver\Command;
-use Netflex\Database\Driver\Schema\Field;
+use Netflex\DBAL\Command;
+use Netflex\DBAL\Column;
 
-class DeleteFieldIfExists
+class DropColumnIfExists
 {
-    protected static $reservedFields = [
-        'id',
-        'name',
-        'directory_id',
-        'revision',
-        'published',
-        'userid',
-        'use_time',
-        'start',
-        'stop',
-        'public',
-    ];
-
     /**
      * Compile a create field command.
      * @return array
@@ -44,7 +31,7 @@ class DeleteFieldIfExists
 
     protected static function compileDeleteField(Blueprint $blueprint, $column)
     {
-        if (Field::isReserved($column)) {
+        if (Column::isReserved($column)) {
             return null;
         }
 
