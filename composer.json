@@ -18,24 +18,16 @@
             "Netflex\\Database\\": "src/"
         }
     },
-    "config": {
-        "platform": {
-            "php": "7.4.0"
-        }
-    },
     "require": {
-        "php": "^7.4",
-        "illuminate/support": "^8.0",
-        "illuminate/database": "^8.0",
+        "php": "^7.4|^8.0",
+        "illuminate/support": "^8.0|^9.0|^10.0",
+        "illuminate/database": "^8.0|^9.0|^10.0",
         "netflex/api": "^4.0",
         "netflex/query-builder": "^4.0",
-        "doctrine/dbal": "^2.0"
+        "doctrine/dbal": "^2.0|^3.0"
     },
     "require-dev": {
-        "larapack/dd": "^1.1",
-        "illuminate/config": "^8.0",
-        "phpoption/phpoption": "^1.9",
-        "vlucas/phpdotenv": "^5.5"
+        "illuminate/config": "^8.0|^9.0|^10.0"
     },
     "extra": {
         "laravel": {
