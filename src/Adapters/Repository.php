@@ -2,6 +2,8 @@
 
 namespace Netflex\Database\Adapters;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Facades\App;
 use RuntimeException;
 
 use Netflex\Database\DBAL\Contracts\Connection;
@@ -34,14 +36,24 @@ final class Repository
 
     public function resolve(string $name, Connection $connection): DatabaseAdapter
     {
-        if (array_key_exists($name, $this->adapters)) {
-            $class = $this->adapters[$name];
+        $previous = null;
 
-            if (class_exists($class) && is_subclass_of($class, DatabaseAdapter::class)) {
-                return new $class($connection);
+        try {
+            if (class_exists($name) && is_subclass_of($name, DatabaseAdapter::class)) {
+                return App::make($name, ['connection' => $connection]);
             }
+
+            if (array_key_exists($name, $this->adapters)) {
+                $class = $this->adapters[$name];
+
+                if (class_exists($class) && is_subclass_of($class, DatabaseAdapter::class)) {
+                    return App::make($class, ['connection' => $connection]);
+                }
+            }
+        } catch (BindingResolutionException $e) {
+            $previous = $e;
         }
 
-        throw new RuntimeException('Unable to resolve adapter [' . $name . '] for connection [' . $connection->getName() . ']',);
+        throw new RuntimeException('Unable to resolve adapter [' . $name . '] for connection [' . $connection->getName() . ']', 0, $previous);
     }
 }
