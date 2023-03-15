@@ -7,6 +7,7 @@
         "laravel",
         "database"
     ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Thomas Alrek",
