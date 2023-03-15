@@ -4,12 +4,14 @@ namespace Netflex\Database\Driver;
 
 use RuntimeException;
 
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use Netflex\Query\Builder as QueryBuilder;
+use Netflex\Database\DBAL\Command;
 
 class QueryGrammar extends Grammar
 {
@@ -60,7 +62,7 @@ class QueryGrammar extends Grammar
             )
         );
 
-        return $request;
+        return ['command' => Command::SELECT, 'arguments' => $request];
     }
 
     /**
@@ -172,7 +174,7 @@ class QueryGrammar extends Grammar
         }
 
         return $request->mapWithKeys(function ($value, $key) {
-            if (in_array($key, ['index', 'size', 'from']) && is_array($value)) {
+            if (in_array($key, ['table', 'size', 'from']) && is_array($value)) {
                 $value = end($value);
             }
 
@@ -195,7 +197,26 @@ class QueryGrammar extends Grammar
             return null;
         }
 
-        return ['_source' => $columns];
+        $expressions = array_values(array_filter($columns, fn ($column) => $column instanceof Expression));
+        $columns = array_values(array_filter($columns, fn ($column) => is_string($column)));
+
+        $compiled = [];
+
+        if (count($columns)) {
+            $compiled = ['_source' => $columns];
+        }
+
+        if (count($expressions)) {
+            foreach ($expressions as $expression) {
+                /** @var Expression $expression */
+                $compiledExpression = $expression->getValue($this);
+                if (is_array($compiledExpression)) {
+                    $compiled = array_merge_recursive($compiled, ['body' => ['query' => $compiledExpression]]);
+                }
+            }
+        }
+
+        return $compiled;
     }
 
     /**
@@ -207,7 +228,7 @@ class QueryGrammar extends Grammar
      */
     protected function compileFrom(Builder $query, $table)
     {
-        return ['index' => $this->wrapTable($table)];
+        return ['table' => $this->wrapTable($table)];
     }
 
     protected function wrapValue($value)
@@ -307,7 +328,7 @@ class QueryGrammar extends Grammar
         if (is_string($where['value'])) {
             $where['value'] = str_replace('%', '*', $where['value']);
 
-            if ($where['type'] !== 'like') {
+            if ($where['operator'] !== 'like') {
                 $where['value'] = str_replace('*', '', $where['value']);
             }
         }
@@ -546,7 +567,7 @@ class QueryGrammar extends Grammar
     public function compileInsert(Builder $query, array $values)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'data' => $values
         ];
     }
@@ -567,8 +588,7 @@ class QueryGrammar extends Grammar
     public function compileUpdate(Builder $query, array $values)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
-            'id' => $query->wheres[0]['value'],
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'query' => $this->compileWheres($query),
             'data' => $values
         ];
@@ -577,8 +597,7 @@ class QueryGrammar extends Grammar
     public function compileDelete(Builder $query)
     {
         return [
-            'index' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
-            'id' => $query->wheres[0]['value'],
+            'table' => implode('', array_values(array_filter([$this->getTablePrefix(), $query->from]))),
             'query' => $this->compileWheres($query),
         ];
     }
@@ -594,5 +613,10 @@ class QueryGrammar extends Grammar
     public function compileInsertUsing(Builder $query, array $columns, string $sql)
     {
         throw new RuntimeException('This database engine does not support inserting using a subquery.');
+    }
+
+    public function compileTableExists()
+    {
+        return ['command' => Command::TABLE_EXISTS];
     }
 }

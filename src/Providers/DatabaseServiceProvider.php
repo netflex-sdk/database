@@ -7,8 +7,16 @@ use Illuminate\Database\DatabaseManager;
 
 use Netflex\Database\Driver\Connection;
 
+
 class DatabaseServiceProvider extends ServiceProvider
 {
+    protected $adapters = [
+        'default'  => \Netflex\Database\DBAL\Adapters\ReadOnlyAdapter::class,
+        'entry'    => \Netflex\Database\Adapters\EntryAdapter::class,
+        'customer' => \Netflex\Database\Adapters\CustomerAdapter::class,
+        'page'     => \Netflex\Database\Adapters\PageAdapter::class,
+    ];
+
     public function register()
     {
         $this->app->resolving('db', function (DatabaseManager $db) {
@@ -17,5 +25,9 @@ class DatabaseServiceProvider extends ServiceProvider
                 return new Connection($config);
             });
         });
+
+        foreach ($this->adapters as $name => $adapter) {
+            $this->app->bind("db.netflex.adapters.{$name}", $adapter);
+        }
     }
 }

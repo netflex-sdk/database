@@ -4,28 +4,88 @@ namespace Netflex\Database\Driver;
 
 use Closure;
 use Exception;
+use PDOStatement;
 use RuntimeException;
 
-use Illuminate\Database\QueryException;
-use Illuminate\Database\Events\StatementPrepared;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Connection as BaseConnection;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Events\StatementPrepared;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
-use PDOStatement;
-use Netflex\Database\Driver\PDO;
+
+use Netflex\Database\DBAL\PDO;
+use Netflex\Database\DBAL\Command;
+use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
+use Netflex\Database\DBAL\Exceptions\QueryException;
+
+use Netflex\Database\Adapters\EntryAdapter;
+
+use Netflex\Database\DBAL\Doctrine\Driver as DoctrineDriver;
+use Netflex\Database\Driver\QueryGrammar;
+use Netflex\Database\Driver\Schema\SchemaGrammar;
+use Netflex\Database\Driver\Schema\SchemaBuilder;
 
 class Connection extends BaseConnection
 {
     protected string $name;
     protected string $connection;
+    protected ?string $adapter = null;
+    protected ?DatabaseAdapter $resolvedAdapter = null;
 
     public function __construct(array $config)
     {
-        $pdo = new PDO(['connection' => $config['connection'] ?? 'default']);
+        $pdo = new PDO($config);
         parent::__construct($pdo, '', $config['prefix'] ?? '', $config);
-        $this->setTablePrefix($config['prefix'] ?? '');
+
         $this->name = $config['name'] ?? 'default';
         $this->connection = $config['connection'] ?? 'default';
+
+        $this->setTablePrefix($config['prefix'] ?? '');
+        $this->setAdapter($config['adapter'] ?? 'default');
+        $pdo->setAdapter($this->getAdapter());
+    }
+
+    protected function setAdapter(?string $adapter = null)
+    {
+        if ($adapter === null) {
+            return;
+        }
+
+        if (App::has('db.netflex.adapters.' . $adapter)) {
+            $adapter = 'db.netflex.adapters.' . $adapter;
+        }
+
+        if ($adapter === EntryAdapter::class && !$this->getTablePrefix()) {
+            $this->setTablePrefix('entry_');
+        }
+
+        if (!$adapter && $this->getTablePrefix() === 'entry_') {
+            $adapter = EntryAdapter::class;
+        }
+
+        $this->adapter = $adapter;
+    }
+
+    public function getAdapter(): DatabaseAdapter
+    {
+        if ($this->resolvedAdapter !== null) {
+            return $this->resolvedAdapter;
+        }
+
+        if ($adapter = $this->adapter) {
+            try {
+                $this->resolvedAdapter = App::make($adapter, ['connection' => $this]);
+                return $this->resolvedAdapter;
+            } catch (Exception $previous) {
+                throw new RuntimeException(
+                    'Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']. (Exception: ' . $previous->getMessage() . ')',
+                    $previous->getCode(),
+                    $previous
+                );
+            }
+        }
+
+        throw new RuntimeException('No adapter specified for connection [' . $this->name . ']');
     }
 
     /**
@@ -38,6 +98,16 @@ class Connection extends BaseConnection
         /** @var PDO $pdo */
         $pdo = parent::getPdo();
         return $pdo;
+    }
+
+    /**
+     * Get the default post processor instance.
+     *
+     * @return Processor
+     */
+    protected function getDefaultPostProcessor()
+    {
+        return new PostProcessor;
     }
 
     /**
@@ -63,7 +133,8 @@ class Connection extends BaseConnection
         // message to include the bindings with SQL, which will make this exception a
         // lot more helpful to the developer instead of just the database's errors.
         catch (Exception $e) {
-            throw new QueryException(
+            throw QueryException::make(
+                $this->name,
                 json_encode($query),
                 $this->prepareBindings($bindings),
                 $e
@@ -106,6 +177,37 @@ class Connection extends BaseConnection
         return $statement;
     }
 
+    protected function performBulkAction($index, $data, $clause, Closure $callback)
+    {
+        $pdo = $this->getPdo();
+
+        $clause['_source'] = ['id'];
+        $clause['size'] = 10000;
+        $clause['table'] = $index;
+
+        $statement = $pdo->prepare([
+            'command' => Command::SELECT,
+            'arguments' => $clause
+        ]);
+
+        $statement->execute();
+
+        $results = collect($statement->fetchAll())->pluck('id');
+        $affected = 0;
+
+        foreach ($results as $id) {
+            if ($callback([
+                'table' => $index,
+                'id' => $id,
+                'data' => $data,
+            ])) {
+                $affected++;
+            }
+        }
+
+        return $affected;
+    }
+
     /**
      * Run an insert statement against the database.
      *
@@ -115,87 +217,37 @@ class Connection extends BaseConnection
      */
     public function insert($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $data = $query['data'] ?? null;
         $payload = [];
         $table = $index;
-        $type = $index;
 
         if (array_key_first($data) === 0) {
             foreach ($data as $item) {
-                $this->insert(['index' => $index, 'data' => $item], $bindings);
+                $this->insert(['table' => $index, 'data' => $item], $bindings);
             }
 
             return true;
         }
 
-        if (Str::startsWith($table, 'entry_')) {
-            $table = Str::after($table, 'entry_');
-            $type = 'entry';
+        if (Str::startsWith($table, $this->getTablePrefix())) {
+            $table = Str::after($table, $this->getTablePrefix());
         }
 
         foreach ($data as $key => $value) {
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        switch ($type) {
-            case 'entry':
-                return $this->insertEntry($table, $payload);
-            case 'customer':
-                return $this->insertCustomer($payload);
-            default:
-                break;
-        }
-
-        throw new RuntimeException('This database engine does not support inserts for [' . $index . '].');
-    }
-
-    /**
-     * @param string|int $structure
-     * @param array $data
-     * @return bool
-     */
-    protected function insertEntry($structure, $data)
-    {
-        $pdo = $this->getPdo();
-        $pdo->setLastInsertId(null);
-        $client = $pdo->getApiClient();
-        $result = $client->post('builder/structures/' . $structure . '/entry', $data);
-        $pdo->setLastInsertId($result->entry_id);
-        return true;
-    }
-
-    protected function insertCustomer($data)
-    {
-        $pdo = $this->getPdo();
-        $pdo->setLastInsertId(null);
-        $client = $pdo->getApiClient();
-        $result = $client->post('relations/customers/customer', $data);
-        $pdo->setLastInsertId($result->customer_id);
-        return true;
-    }
-
-    protected function bulk($index, $data, $clause, Closure $callback)
-    {
-        $pdo = $this->getPdo();
-        $clause['_source'] = ['id'];
-        $clause['size'] = 10000;
-        $clause['index'] = $index;
-        $statement = $pdo->prepare($clause);
-        $statement->execute();
-        $results = collect($statement->fetchAll())->pluck('id');
-        $affected = 0;
-
-        foreach ($results as $id) {
-            $callback([
-                'index' => $index,
-                'id' => $id,
-                'data' => $data,
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::INSERT,
+                'arguments' => [
+                    'table' => $table,
+                    'payload' => $payload,
+                ]
             ]);
-            $affected++;
-        }
 
-        return $affected;
+        return $statement->execute();
     }
 
     /**
@@ -207,62 +259,38 @@ class Connection extends BaseConnection
      */
     public function update($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $id = $query['id'] ?? false;
         $clause = $query['query'] ?? null;
         $data = $query['data'] ?? null;
         $payload = [];
         $table = $index;
-        $type = $index;
 
         if (!$id && $clause) {
-            return $this->bulk($index, $data, $clause, function ($query) {
+            return $this->performBulkAction($index, $data, $clause, function ($query) {
                 return $this->update($query);
             });
         }
 
-        if (Str::startsWith($table, 'entry_')) {
-            $table = Str::after($table, 'entry_');
-            $type = 'entry';
+        if (Str::startsWith($table, $this->getTablePrefix())) {
+            $table = Str::after($table, $this->getTablePrefix());
         }
 
         foreach ($data as $key => $value) {
             $payload[$this->queryGrammar->removeQualifiedColumn($table, $key)] = $value;
         }
 
-        switch ($type) {
-            case 'entry':
-                return $this->updateEntry($id, $payload);
-            case 'customer':
-                return $this->updateCustomer($id, $payload);
-            default:
-                break;
-        }
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::UPDATE,
+                'arguments' => [
+                    'id' => $id,
+                    'table' => $table,
+                    'payload' => $payload,
+                ]
+            ]);
 
-        throw new RuntimeException('This database engine does not support updates for [' . $index . '].');
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param string|int $structure
-     * @param array $data
-     * @return bool
-     */
-    protected function updateEntry($id, $data)
-    {
-        $pdo = $this->getPdo();
-        $client = $pdo->getApiClient();
-        $client->put('builder/structures/entry/' . $id, $data);
-        return true;
-    }
-
-    protected function updateCustomer($id, $data)
-    {
-        $pdo = $this->getPdo();
-        $client = $pdo->getApiClient();
-        $client->put('relations/customers/customer/' . $id, $data);
-        return true;
+        return $statement->execute();
     }
 
     /**
@@ -274,49 +302,31 @@ class Connection extends BaseConnection
      */
     public function delete($query, $bindings = [])
     {
-        $index = $query['index'] ?? null;
+        $index = $query['table'] ?? null;
         $id = $query['id'] ?? false;
         $clause = $query['query'] ?? null;
         $table = $index;
-        $type = $index;
 
         if (!$id && $clause) {
-            return $this->bulk($index, [], $clause, function ($query) {
+            return $this->performBulkAction($index, [], $clause, function ($query) {
                 return $this->delete($query);
             });
         }
 
-        if (Str::startsWith($table, 'entry_')) {
-            $type = 'entry';
-            $table = Str::after($table, 'entry_');
+        if (Str::startsWith($table, $this->getTablePrefix())) {
+            $table = Str::after($table, $this->getTablePrefix());
         }
 
-        switch ($type) {
-            case 'entry':
-                return $this->deleteEntry($id);
-            case 'customer':
-                return $this->deleteCustomer($id);
-            default:
-                break;
-        }
+        $statement = $this->getPdo()
+            ->prepare([
+                'command' => Command::DELETE,
+                'arguments' => [
+                    'id' => $id,
+                    'table' => $table
+                ]
+            ]);
 
-        throw new RuntimeException('This database engine does not support deletes of [' . $index . '].');
-    }
-
-    protected function deleteEntry($id)
-    {
-        $pdo = $this->getPdo();
-        $client = $pdo->getApiClient();
-        $client->delete('builder/structures/entry/' . $id);
-        return true;
-    }
-
-    protected function deleteCustomer($id)
-    {
-        $pdo = $this->getPdo();
-        $client = $pdo->getApiClient();
-        $client->delete('relations/customers/customer/' . $id);
-        return true;
+        return $statement->execute();
     }
 
     /**
@@ -327,5 +337,25 @@ class Connection extends BaseConnection
     protected function getDefaultQueryGrammar()
     {
         return new QueryGrammar;
+    }
+
+    /**
+     * Get the default schema grammar instance.
+     *
+     * @return QueryGrammar
+     */
+    protected function getDefaultSchemaGrammar()
+    {
+        return new SchemaGrammar($this);
+    }
+
+    public function getSchemaBuilder()
+    {
+        return new SchemaBuilder($this);
+    }
+
+    public function getDoctrineDriver(): DoctrineDriver
+    {
+        return new DoctrineDriver($this);
     }
 }
