@@ -19,12 +19,14 @@ use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
 use Netflex\Database\DBAL\Exceptions\QueryException;
 use Netflex\Database\DBAL\Contracts\Connection as ConnectionContract;
 
+use Netflex\Database\Facades\Adapter;
 use Netflex\Database\Adapters\EntryAdapter;
 
 use Netflex\Database\DBAL\Doctrine\Driver as DoctrineDriver;
 use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
+use Netflex\Database\Repositories\AdapterRepository;
 
 class Connection extends BaseConnection implements ConnectionContract
 {
@@ -70,21 +72,8 @@ class Connection extends BaseConnection implements ConnectionContract
 
     public function getAdapter(): DatabaseAdapter
     {
-        if ($this->resolvedAdapter !== null) {
-            return $this->resolvedAdapter;
-        }
-
         if ($adapter = $this->adapter) {
-            try {
-                $this->resolvedAdapter = App::make($adapter, ['connection' => $this]);
-                return $this->resolvedAdapter;
-            } catch (Exception $previous) {
-                throw new RuntimeException(
-                    'Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']. (Exception: ' . $previous->getMessage() . ')',
-                    $previous->getCode(),
-                    $previous
-                );
-            }
+            return Adapter::resolve($adapter, $this);
         }
 
         throw new RuntimeException('No adapter specified for connection [' . $this->name . ']');
