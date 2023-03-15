@@ -20,6 +20,15 @@
     },
     "minimum-stability": "RC",
     "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/Thomas/Development/Work/nfdbal",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^7.4|^8.0",
         "illuminate/support": "^8.0|^9.0|^10.0",
