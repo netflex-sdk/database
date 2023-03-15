@@ -20,7 +20,7 @@ use Netflex\Database\DBAL\Exceptions\QueryException;
 
 use Netflex\Database\Adapters\EntryAdapter;
 
-use Netflex\Database\Driver\Doctrine\Driver as DoctrineDriver;
+use Netflex\Database\DBAL\Doctrine\Driver as DoctrineDriver;
 use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
