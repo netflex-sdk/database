@@ -17,6 +17,7 @@ use Netflex\Database\DBAL\PDO;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
 use Netflex\Database\DBAL\Exceptions\QueryException;
+use Netflex\Database\DBAL\Contracts\Connection as ConnectionContract;
 
 use Netflex\Database\Adapters\EntryAdapter;
 
@@ -25,7 +26,7 @@ use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
 
-class Connection extends BaseConnection
+class Connection extends BaseConnection implements ConnectionContract
 {
     protected string $name;
     protected string $connection;

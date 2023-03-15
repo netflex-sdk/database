@@ -6,8 +6,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Grammars\Grammar;
 
 use Netflex\Database\DBAL\Command;
+use Netflex\Database\DBAL\Grammars\SelectColumns;
 
-use Netflex\Database\Driver\Connection;
+use Netflex\Database\DBAL\Contracts\Connection;
 
 use Netflex\Database\Driver\Schema\Grammars\AlterColumn;
 use Netflex\Database\Driver\Schema\Grammars\CreateColumn;
@@ -15,7 +16,6 @@ use Netflex\Database\Driver\Schema\Grammars\CreateTable;
 use Netflex\Database\Driver\Schema\Grammars\DropColumnIfExists;
 use Netflex\Database\Driver\Schema\Grammars\DropTable;
 use Netflex\Database\Driver\Schema\Grammars\DropTableIfExists;
-use Netflex\Database\Driver\Schema\Grammars\SelectColumns;
 
 class SchemaGrammar extends Grammar
 {
