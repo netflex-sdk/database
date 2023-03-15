@@ -9,7 +9,6 @@ use PDOException;
 
 use GuzzleHttp\Exception\ClientException;
 
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
@@ -196,11 +195,6 @@ final class EntryAdapter extends AbstractAdapter
             $arguments['alias'] = $arguments['table'];
             unset($arguments['table']);
 
-            if (App::runningInConsole()) {
-                $console = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $console->writeln('Creating search index for structure [' . $table . ']...');
-            }
-
             $client = $statement->getPDO()->getAPIClient();
 
             try {
@@ -295,6 +289,9 @@ final class EntryAdapter extends AbstractAdapter
 
             $arguments['alias'] = $arguments['column'];
             unset($arguments['column']);
+
+            $arguments['type'] = $arguments['type'] ?? 'text';
+            $arguments['type'] = Column::mapType($arguments['type']);
 
             try {
                 $client->post('builder/structures/' . $table . '/field', $arguments);
