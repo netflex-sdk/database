@@ -52,12 +52,20 @@ final class EntryAdapter extends AbstractAdapter
                 $response = json_decode($e->getResponse()->getBody());
 
                 if (isset($response->error)) {
-                    foreach ($response->error->errors as $type => $messages) {
-                        if (count($messages)) {
-                            throw new RuntimeException(reset($messages));
+                    if (isset($response->error->errors)) {
+                        foreach ($response->error->errors as $type => $messages) {
+                            if (count($messages)) {
+                                throw new RuntimeException(reset($messages));
+                            }
                         }
                     }
+
+                    if (isset($response->error->message)) {
+                        throw new RuntimeException($response->error->message . ' (Table: entry_' . $table . ')', $e->getCode(), $e);
+                    }
                 }
+
+                throw new RuntimeException($e->getMessage(), $e->getCode());
             }
 
             return false;

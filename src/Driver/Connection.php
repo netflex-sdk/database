@@ -30,11 +30,7 @@ class Connection extends BaseConnection
     protected string $name;
     protected string $connection;
     protected ?string $adapter = null;
-
-    const DB_ADAPTERS = [
-        'default' => \Netflex\Database\DBAL\Adapters\ReadOnlyAdapter::class,
-        'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
-    ];
+    protected ?DatabaseAdapter $resolvedAdapter = null;
 
     public function __construct(array $config)
     {
@@ -55,8 +51,8 @@ class Connection extends BaseConnection
             return;
         }
 
-        if (array_key_exists($adapter, static::DB_ADAPTERS)) {
-            $adapter = static::DB_ADAPTERS[$adapter];
+        if (App::has('db.netflex.adapters.' . $adapter)) {
+            $adapter = 'db.netflex.adapters.' . $adapter;
         }
 
         if ($adapter === EntryAdapter::class && !$this->getTablePrefix()) {
@@ -70,13 +66,22 @@ class Connection extends BaseConnection
         $this->adapter = $adapter;
     }
 
-    protected function getAdapter(): DatabaseAdapter
+    public function getAdapter(): DatabaseAdapter
     {
+        if ($this->resolvedAdapter !== null) {
+            return $this->resolvedAdapter;
+        }
+
         if ($adapter = $this->adapter) {
             try {
-                return App::make($adapter);
-            } catch (Exception $e) {
-                throw new RuntimeException('Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']');
+                $this->resolvedAdapter = App::make($adapter, ['connection' => $this]);
+                return $this->resolvedAdapter;
+            } catch (Exception $previous) {
+                throw new RuntimeException(
+                    'Invalid adapter [' . $adapter . '] for connection [' . $this->name . ']. (Exception: ' . $previous->getMessage() . ')',
+                    $previous->getCode(),
+                    $previous
+                );
             }
         }
 
