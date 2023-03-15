@@ -5,8 +5,8 @@ namespace Netflex\Database\Driver\Schema\Grammars;
 use Illuminate\Database\Schema\Grammars\Grammar;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
-use Illuminate\Database\Connection;
 
+use Netflex\Database\Driver\Connection;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Column;
 
@@ -29,9 +29,9 @@ class DropColumn
         );
     }
 
-    protected static function compileDeleteField(Blueprint $blueprint, $column)
+    protected static function compileDeleteField(Blueprint $blueprint, $column, Connection $connection)
     {
-        if (Column::isReserved($column)) {
+        if (Column::isReserved($connection, $column)) {
             return null;
         }
 

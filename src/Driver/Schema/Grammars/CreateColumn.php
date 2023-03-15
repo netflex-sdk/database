@@ -5,10 +5,10 @@ namespace Netflex\Database\Driver\Schema\Grammars;
 use Illuminate\Database\Schema\Grammars\Grammar;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
-use Illuminate\Database\Connection;
 
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Column;
+use Netflex\Database\Driver\Connection;
 
 class CreateColumn
 {
@@ -29,9 +29,9 @@ class CreateColumn
         );
     }
 
-    protected static function compileCreateField(Blueprint $blueprint, $column)
+    protected static function compileCreateField(Blueprint $blueprint, $column, Connection $connection)
     {
-        if (Column::isReserved($column->name)) {
+        if (Column::isReserved($connection, $column->name)) {
             return null;
         }
 

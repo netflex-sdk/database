@@ -101,6 +101,16 @@ class Connection extends BaseConnection
     }
 
     /**
+     * Get the default post processor instance.
+     *
+     * @return Processor
+     */
+    protected function getDefaultPostProcessor()
+    {
+        return new PostProcessor;
+    }
+
+    /**
      * Run a SQL statement.
      *
      * @param array $query

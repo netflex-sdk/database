@@ -22,6 +22,59 @@ final class EntryAdapter extends AbstractAdapter
 {
     use PerformsQueries;
 
+    protected array $reservedFields = [
+        'id' => [
+            'type' => 'integer',
+            'notnull' => true,
+            'autoincrement' => true,
+            'comment' => 'Primary key'
+        ],
+        'name' => [
+            'type' => 'text',
+            'notnull' => true,
+            'comment' => 'Name of the entry'
+        ],
+        'directory_id' => [
+            'type' => 'integer',
+            'notnull' => true,
+            'comment' => 'The directory this entry belongs to'
+        ],
+        'revision' => [
+            'type' => 'integer',
+            'autoincrement' => true,
+            'notnull' => true,
+            'comment' => 'Current revision'
+        ],
+        'published' => [
+            'type' => 'boolean',
+            'notnull' => true,
+            'comment' => 'Whether or not this entry is published'
+        ],
+        'userid' => [
+            'type' => 'integer',
+        ],
+        'use_time' => [
+            'type' => 'boolean',
+            'notnull' => true,
+            'comment' => 'Whether or not this entry uses time based publishing'
+        ],
+        'start' => [
+            'type' => 'datetime',
+            'notnull' => false,
+            'comment' => 'From when this entry should be published'
+        ],
+        'stop' => [
+            'type' => 'datetime',
+            'notnull' => false,
+            'comment' => 'When this entry should be unpublished'
+        ],
+        'public' => [
+            'type' => 'boolean',
+            'notnull' => false,
+            'comment' => 'Not used'
+        ]
+    ];
+
     public function insert(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
         $table = $arguments['table'];
@@ -176,21 +229,26 @@ final class EntryAdapter extends AbstractAdapter
         return true;
     }
 
-    public function dropTableIfExists(PDOStatement $statement, array $arguments, Closure $callback): bool
-    {
-        if ($this->tableExists($statement, $arguments, $callback)) {
-            return $this->dropTable($statement, $arguments, $callback);
-        }
-
-        return false;
-    }
-
     public function selectColumns(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
         $table = $arguments['table'];
+        $client = $statement->getPDO()->getAPIClient();
 
         try {
-            $result = Column::getFields($statement->getPDO()->getAPIClient(), $table);
+            $parentFields = [];
+
+            parent::selectColumns($statement, $arguments, function ($fields) use (&$parentFields) {
+                $parentFields = $fields;
+            });
+
+            $result = array_merge(
+                $parentFields,
+                array_map(
+                    fn ($field) => Column::mapField($field),
+                    $client->get('builder/structures/' . $table . '/fields', true)
+                )
+            );
+
             $callback(array_map(fn (Column $field) => $field->toArray(), $result));
             return true;
         } catch (Exception $e) {
@@ -295,13 +353,6 @@ final class EntryAdapter extends AbstractAdapter
             }
         } catch (Exception $e) {
             throw new PDOException($e->getMessage(), $e->getCode());
-        }
-    }
-
-    public function dropColumnIfExists(PDOStatement $statement, array $arguments, Closure $callback): bool
-    {
-        if ($this->columnExists($statement, $arguments, $callback)) {
-            return $this->dropColumn($statement, $arguments, $callback);
         }
     }
 }

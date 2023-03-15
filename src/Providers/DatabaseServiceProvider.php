@@ -11,8 +11,10 @@ use Netflex\Database\Driver\Connection;
 class DatabaseServiceProvider extends ServiceProvider
 {
     protected $adapters = [
-        'default' => \Netflex\Database\DBAL\Adapters\ReadOnlyAdapter::class,
-        'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
+        'default'  => \Netflex\Database\DBAL\Adapters\ReadOnlyAdapter::class,
+        'entry'    => \Netflex\Database\Adapters\EntryAdapter::class,
+        'customer' => \Netflex\Database\Adapters\CustomerAdapter::class,
+        'page'     => \Netflex\Database\Adapters\PageAdapter::class,
     ];
 
     public function register()

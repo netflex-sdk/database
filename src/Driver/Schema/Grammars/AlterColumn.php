@@ -18,11 +18,11 @@ class AlterColumn
      */
     public static function compile(Grammar $grammar, Blueprint $blueprint, Fluent $command, Connection $connection)
     {
-        if (Column::isReserved($command->to)) {
+        if (Column::isReserved($connection, $command->to)) {
             return [];
         }
 
-        if (Column::isReserved($command->from)) {
+        if (Column::isReserved($connection, $command->from)) {
             return [];
         }
 
