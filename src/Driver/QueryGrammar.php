@@ -4,6 +4,7 @@ namespace Netflex\Database\Driver;
 
 use RuntimeException;
 
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -196,7 +197,26 @@ class QueryGrammar extends Grammar
             return null;
         }
 
-        return ['_source' => $columns];
+        $expressions = array_values(array_filter($columns, fn ($column) => $column instanceof Expression));
+        $columns = array_values(array_filter($columns, fn ($column) => is_string($column)));
+
+        $compiled = [];
+
+        if (count($columns)) {
+            $compiled = ['_source' => $columns];
+        }
+
+        if (count($expressions)) {
+            foreach ($expressions as $expression) {
+                /** @var Expression $expression */
+                $compiledExpression = $expression->getValue($this);
+                if (is_array($compiledExpression)) {
+                    $compiled = array_merge_recursive($compiled, ['body' => ['query' => $compiledExpression]]);
+                }
+            }
+        }
+
+        return $compiled;
     }
 
     /**

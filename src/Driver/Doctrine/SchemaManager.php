@@ -5,8 +5,8 @@ namespace Netflex\Database\Driver\Doctrine;
 use Netflex\Database\DBAL\Column;
 use Netflex\Database\Driver\Connection;
 
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Connection as DoctrineConnection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 
 class SchemaManager extends AbstractSchemaManager
