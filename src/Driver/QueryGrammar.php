@@ -4,7 +4,7 @@ namespace Netflex\Database\Driver;
 
 use RuntimeException;
 
-use Illuminate\Contracts\Database\Query\Expression;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -520,7 +520,7 @@ class QueryGrammar extends Grammar
      * Compile the "limit" portions of the query.
      *
      * @param Builder $query
-     * @param int $limit
+     * @param int|null $limit
      * @return string
      */
     protected function compileLimit(Builder $query, $limit)

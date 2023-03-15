@@ -51,9 +51,10 @@ class Connection extends BaseConnection
             return;
         }
 
-        if (App::has('db.netflex.adapters.' . $adapter)) {
-            $adapter = 'db.netflex.adapters.' . $adapter;
-        }
+        /** @phpstan-ignore-next-line */
+        $adapter = App::bound('db.netflex.adapters.' . $adapter)
+            ? ('db.netflex.adapters.' . $adapter)
+            : $adapter;
 
         if ($adapter === EntryAdapter::class && !$this->getTablePrefix()) {
             $this->setTablePrefix('entry_');

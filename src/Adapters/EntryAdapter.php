@@ -342,14 +342,19 @@ final class EntryAdapter extends AbstractAdapter
                 if ($field['column'] === $arguments['column']) {
                     try {
                         $client->delete('builder/structures/field/' . $field['id']);
-                        return true;
                     } catch (Exception $e) {
                         throw new PDOException($e->getMessage(), $e->getCode());
                     }
                 }
             }
         } catch (Exception $e) {
+            if ($e instanceof PDOException) {
+                throw $e;
+            }
+
             throw new PDOException($e->getMessage(), $e->getCode());
         }
+
+        return true;
     }
 }

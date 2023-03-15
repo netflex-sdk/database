@@ -28,7 +28,8 @@
         "netflex/query-builder": "^4.0"
     },
     "require-dev": {
-        "illuminate/config": "^8.0|^9.0|^10.0"
+        "illuminate/config": "^8.0|^9.0|^10.0",
+        "phpstan/phpstan": "^1.10"
     },
     "extra": {
         "laravel": {
