@@ -4,7 +4,7 @@ namespace Netflex\Database\Driver\Schema\Grammars;
 
 use Illuminate\Support\Str;
 
-use Netflex\DBAL\Command;
+use Netflex\Database\DBAL\Command;
 use Netflex\Database\Driver\Connection;
 
 class SelectColumns

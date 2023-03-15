@@ -5,7 +5,7 @@ namespace Netflex\Database\Driver\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Grammars\Grammar;
 
-use Netflex\DBAL\Command;
+use Netflex\Database\DBAL\Command;
 
 use Netflex\Database\Driver\Connection;
 

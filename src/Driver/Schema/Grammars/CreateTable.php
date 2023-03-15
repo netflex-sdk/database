@@ -7,8 +7,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\DBAL\Command;
-use Netflex\DBAL\Table;
+use Netflex\Database\DBAL\Command;
+use Netflex\Database\DBAL\Table;
 use Netflex\Database\Driver\Schema\Grammars\CreateColumn;
 
 class CreateTable

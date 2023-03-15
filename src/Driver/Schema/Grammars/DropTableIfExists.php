@@ -7,7 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\DBAL\Command;
+use Netflex\Database\DBAL\Command;
 
 class DropTableIfExists
 {

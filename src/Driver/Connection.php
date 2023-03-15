@@ -13,9 +13,9 @@ use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 
-use Netflex\DBAL\PDO;
-use Netflex\DBAL\Command;
-use Netflex\DBAL\Contracts\DatabaseAdapter;
+use Netflex\Database\DBAL\PDO;
+use Netflex\Database\DBAL\Command;
+use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
 
 use Netflex\Database\Adapters\EntryAdapter;
 use Netflex\Database\Exceptions\QueryException;
@@ -31,7 +31,7 @@ class Connection extends BaseConnection
     protected ?string $adapter = null;
 
     const DB_ADAPTERS = [
-        'default' => \Netflex\DBAL\Adapters\ReadOnlyAdapter::class,
+        'default' => \Netflex\Database\DBAL\Adapters\ReadOnlyAdapter::class,
         'entry' => \Netflex\Database\Adapters\EntryAdapter::class,
     ];
 

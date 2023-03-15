@@ -12,11 +12,11 @@ use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 
-use Netflex\DBAL\Adapters\AbstractAdapter;
-use Netflex\DBAL\PDOStatement;
-use Netflex\DBAL\Command;
-use Netflex\DBAL\Column;
-use Netflex\DBAL\Concerns\PerformsQueries;
+use Netflex\Database\DBAL\Adapters\AbstractAdapter;
+use Netflex\Database\DBAL\PDOStatement;
+use Netflex\Database\DBAL\Command;
+use Netflex\Database\DBAL\Column;
+use Netflex\Database\DBAL\Concerns\PerformsQueries;
 
 final class EntryAdapter extends AbstractAdapter
 {

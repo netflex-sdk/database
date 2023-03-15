@@ -2,7 +2,7 @@
 
 namespace Netflex\Database\Driver\Doctrine;
 
-use Netflex\DBAL\Column;
+use Netflex\Database\DBAL\Column;
 use Netflex\Database\Driver\Connection;
 
 use Doctrine\DBAL\Schema\AbstractSchemaManager;

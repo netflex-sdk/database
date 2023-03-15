@@ -8,7 +8,7 @@ use Illuminate\Database\DatabaseManager;
 use Netflex\Database\Driver\Connection;
 use Netflex\Database\Adapters\EntryAdapter;
 
-use Netflex\DBAL\Adapters\ReadOnlyAdapter;
+use Netflex\Database\DBAL\Adapters\ReadOnlyAdapter;
 
 class DatabaseServiceProvider extends ServiceProvider
 {

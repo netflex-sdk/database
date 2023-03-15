@@ -7,8 +7,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-use Netflex\DBAL\Column;
-use Netflex\DBAL\Command;
+use Netflex\Database\DBAL\Column;
+use Netflex\Database\DBAL\Command;
 
 class AlterColumn
 {
