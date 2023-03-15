@@ -12,6 +12,7 @@ This package provides a database driver for Laravel that allows you to use the N
     * [Models](#models)
         * [Caveats](#caveats)
 * [Netflex specific functionality](#netflex-specific-functionality)
+    * [Caching](#caching)
     * [Automatically respecting the publishing status of an entry](#automatically-respecting-the-publishing-status-of-an-entry)
     * [Refresh data from API on save](#refresh-data-from-api-on-save)
     * [Automatically setting name of entries](#automatically-setting-name-of-entries)
@@ -153,6 +154,14 @@ const UPDATED_AT = 'updated';
 If you have previously used the Model implmentation from the Netflex SDK, some functionality was provided out of the box, that isn't compatible with Eloquent models directly.
 
 This packages provides some traits that you can apply to  your models to bring back this functionality.
+
+### Caching
+
+This driver does not deal with caching, as that is a concern that should be handled by the application.
+The recommended substitute for automatic caching is to use the a tagged cache driver and installing a third party package that deals with caching Eloquent models.
+
+Recommended packages:
+* [genealabs/laravel-model-caching](https://github.com/GeneaLabs/laravel-model-caching)
 
 ### Automatically respecting the publishing status of an entry
 
