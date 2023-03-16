@@ -6,6 +6,10 @@ use Netflex\Database\DBAL\Adapters\AbstractAdapter;
 
 final class PageAdapter extends AbstractAdapter
 {
+    protected array $reservedTableNames = [
+        'page'
+    ];
+
     protected array $reservedFields = [
         'id' => [
             'type' => 'integer',
