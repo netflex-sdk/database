@@ -54,17 +54,8 @@ class Connection extends BaseConnection implements ConnectionContract
             return;
         }
 
-        /** @phpstan-ignore-next-line */
-        $adapter = App::bound('db.netflex.adapters.' . $adapter)
-            ? ('db.netflex.adapters.' . $adapter)
-            : $adapter;
-
-        if ($adapter === EntryAdapter::class && !$this->getTablePrefix()) {
-            $this->setTablePrefix('entry_');
-        }
-
         if (!$adapter && $this->getTablePrefix() === 'entry_') {
-            $adapter = EntryAdapter::class;
+            $adapter = 'entry';
         }
 
         $this->adapter = $adapter;

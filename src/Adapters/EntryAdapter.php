@@ -16,10 +16,17 @@ use Netflex\Database\DBAL\PDOStatement;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Column;
 use Netflex\Database\DBAL\Concerns\PerformsQueries;
+use Netflex\Database\DBAL\Contracts\Connection;
 
 final class EntryAdapter extends AbstractAdapter
 {
     use PerformsQueries;
+
+    public function __construct(Connection $connection)
+    {
+        parent::__construct($connection);
+        $connection->setTablePrefix('entry_' . $connection->getTablePrefix());
+    }
 
     protected array $reservedFields = [
         'id' => [
