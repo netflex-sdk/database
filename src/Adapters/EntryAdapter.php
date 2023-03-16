@@ -295,7 +295,7 @@ final class EntryAdapter extends AbstractAdapter
 
         if (!$fieldExistsStatement->execute()) {
             $table = $arguments['table'];
-            unset($arguments['structure']);
+            unset($arguments['table']);
 
             $arguments['alias'] = $arguments['column'];
             unset($arguments['column']);
