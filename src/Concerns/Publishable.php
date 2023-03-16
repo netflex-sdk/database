@@ -3,7 +3,10 @@
 namespace Netflex\Database\Concerns;
 
 use DateTimeInterface;
+
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+
 use Netflex\Database\Scopes\PublishedScope;
 
 trait Publishable
@@ -27,5 +30,23 @@ trait Publishable
     public function scopeWithUnpublished(Builder $query)
     {
         return $query->withoutGlobalScope(PublishedScope::class);
+    }
+
+    /** @return bool */
+    public function publish()
+    {
+        /** @var Model $this */
+        $this->published = true;
+
+        return $this->save();
+    }
+
+    /** @return bool */
+    public function unpublish()
+    {
+        /** @var Model $this */
+        $this->published = false;
+
+        return $this->save();
     }
 }
