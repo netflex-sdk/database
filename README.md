@@ -1,5 +1,12 @@
 # Netflex Database Driver for Laravel
 
+<p>
+<a href="https://github.com/netflex-sdk/database/actions"><img src="https://github.com/netflex-sdk/database/actions/workflows/static_analysis.yml/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/netflex/database"><img src="https://img.shields.io/packagist/dt/netflex/database" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/netflex/database"><img src="https://img.shields.io/packagist/v/netflex/database" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/netflex/database"><img src="https://img.shields.io/packagist/l/netflex/database" alt="License"></a>
+</p>
+
 This package provides a database driver for Laravel that allows you to use the Netflex API as a database backend for your Laravel application.
 
 This package supports Laravel 8 through 10, and PHP 7.4 through 8.2.
