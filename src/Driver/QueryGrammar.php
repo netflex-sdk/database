@@ -280,7 +280,7 @@ class QueryGrammar extends Grammar
      */
     protected function whereNotNull(Builder $query, $where)
     {
-        return '_exists_:' . $where['column'];
+        return '_exists_:' . $this->removeQualifiedColumn($query->from, $where['column']);
     }
 
     /**
