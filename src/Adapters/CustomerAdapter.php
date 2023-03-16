@@ -16,7 +16,9 @@ use Netflex\Database\DBAL\Column;
 
 final class CustomerAdapter extends AbstractAdapter
 {
-    use PerformsQueries;
+    use PerformsQueries {
+        select as performSelect;
+    }
 
     protected array $reservedTableNames = [
         'customer'
@@ -120,6 +122,13 @@ final class CustomerAdapter extends AbstractAdapter
             'comment' => 'Token'
         ],
     ];
+
+    public function select(PDOStatement $statement, array $arguments, Closure $callback): bool
+    {
+        $arguments['table'] = 'customer';
+
+        return $this->performSelect($statement, $arguments, $callback);
+    }
 
     public function insert(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
