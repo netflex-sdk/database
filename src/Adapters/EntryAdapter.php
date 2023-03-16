@@ -22,11 +22,16 @@ final class EntryAdapter extends AbstractAdapter
 {
     use PerformsQueries;
 
-    public function __construct(Connection $connection)
-    {
-        parent::__construct($connection);
-        $connection->setTablePrefix('entry_' . $connection->getTablePrefix());
-    }
+    protected string $tablePrefix = 'entry_';
+
+    protected array $reservedTableNames = [
+        'failed_jobs',
+        'migrations',
+        'password_reset_tokens',
+        'password_resets',
+        'personal_access_tokens',
+        'users'
+    ];
 
     protected array $reservedFields = [
         'id' => [
@@ -196,10 +201,8 @@ final class EntryAdapter extends AbstractAdapter
     public function createTable(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
         if (!$this->tableExists($statement, $arguments, $callback)) {
-            $console = null;
             $table = $arguments['table'];
-
-            $arguments['alias'] = $arguments['table'];
+            $arguments['alias'] = $table;
             unset($arguments['table']);
 
             $client = $statement->getPDO()->getAPIClient();

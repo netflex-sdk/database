@@ -12,12 +12,15 @@ use GuzzleHttp\Exception\ClientException;
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
 use Netflex\Database\DBAL\Concerns\PerformsQueries;
 use Netflex\Database\DBAL\PDOStatement;
-use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Column;
 
 final class CustomerAdapter extends AbstractAdapter
 {
     use PerformsQueries;
+
+    protected array $reservedTableNames = [
+        'customer'
+    ];
 
     protected array $reservedFields = [
         'id' => [
