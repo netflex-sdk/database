@@ -5,6 +5,10 @@ namespace Netflex\Database\Concerns;
 use Illuminate\Support\Str;
 use Netflex\Database\Observers\NameObserver;
 
+/**
+ * @property string $name
+ * @property string $url
+ */
 trait GeneratesName
 {
     public static function bootGeneratesName()
