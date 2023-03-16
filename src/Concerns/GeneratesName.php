@@ -20,4 +20,9 @@ trait GeneratesName
     {
         return (string) Str::uuid();
     }
+
+    public function freshUrl()
+    {
+        return Str::slug($this->name);
+    }
 }

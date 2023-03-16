@@ -29,7 +29,7 @@ class NameObserver
         }
 
         if (!isset($model->url)) {
-            $model->url = Str::slug($model->name);
+            $model->url = $model->freshUrl();
         }
     }
 }
