@@ -29,10 +29,8 @@ class CreateTable
         $reservedTables = $connection->getAdapter()->getReservedTableNames();
 
         if (in_array($blueprint->getTable(), $reservedTables)) {
-            $config['hide_structure_from_listing'] = [
-                'type' => 'boolean',
-                'value' => true
-            ];
+            $config['disableRevisions'] = ['type' => 'boolean', 'value' => true];
+            $config['hide_structure_from_listing'] = ['type' => 'boolean', 'value' => true];
         }
 
         if (!empty($config)) {
