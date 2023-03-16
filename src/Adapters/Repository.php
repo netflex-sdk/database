@@ -55,7 +55,7 @@ final class Repository
     /**
      * @param string $adapter
      * @param string|null $alias
-     * @return Repistory
+     * @return Repository
      */
     public function register(string $adapter, ?string $alias = null)
     {

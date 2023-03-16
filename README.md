@@ -7,7 +7,7 @@
 <a href="https://packagist.org/packages/netflex/database"><img src="https://img.shields.io/packagist/l/netflex/database" alt="License"></a>
 </p>
 
-This package provides a database driver for Laravel that allows you to use the Netflex API as a database backend for your Laravel application.
+This package provides a database driver for Laravel that enables you to use the Netflex API as a database backend for your Laravel application.
 
 This package supports Laravel 8 through 10, and PHP 7.4 through 8.2.
 
@@ -18,6 +18,7 @@ This package supports Laravel 8 through 10, and PHP 7.4 through 8.2.
     * [Usage](#usage)
         * [Configuration](#configuration)
 * [Eloquent](#eloquent)
+    * [Reference Model](#reference-model)
     * [Models](#models)
         * [Caveats](#caveats)
 * [Netflex specific functionality](#netflex-specific-functionality)
@@ -31,11 +32,13 @@ This package supports Laravel 8 through 10, and PHP 7.4 through 8.2.
 
 ## Motivation / Why?
 
-Laravel provides a powerful database abstraction layer that allows you to use a variety of different database backends. Most third party Laravel packages that and first party functionality assumes that you are using a relational database backend.
+Laravel provides a powerful database abstraction layer that allows you to use a variety of different database backends.
 
-This package allows you to use the Netflex API as a database backend for your Laravel application, bridging the gap between the Netflex API and Laravel.
+Most first and third party packages in the Laravel ecosystem assumes that you are using a relational database backend.
 
-This again allows you to use most of Laravels functionality out of the box, while still using the Netflex API as your backend.
+This package enables you to use the Netflex API as a database backend for your Laravel application, bridging the gap between the Netflex API and Laravel.
+
+This enables you to use most of Laravels functionality out of the box, while still using the Netflex API as your backend.
 
 ## Installation
 
@@ -65,41 +68,77 @@ return [
 ```
 
 Note that the `adapter` property is required if you want to be able to perform "write" operations, and must be set to a valid adapter name. The following adapters are currently supported:
-* `entry`
+* `entry` (Full support)
+* `customer` (Write support, schema manipulation not supported due to API limitations)
+* `page` (Read-only support)
+* `read-only` (also aliased as `default` for fallback purposes)
 
-If no adapter is specified, the connection will only work as a read-only connection, and you won't be interrogate the schema of the "databases".
+If no adapter is specified, the connection will only work as a read-only connection, and you won't be able to interrogate your connections Schema or perform any write operations.
 
-Also note that by using the `entry` adapter, if not otherwise configured, the `prefix` property will be implictly set to `entry_`.
+Note that by using the `entry` adapter, your models `$prefix` property will be prepended with `entry_` to match the Netflex index naming convention.
 
-You can also provide a custom adapter class name, as long as it implements the `Netflex\Database\Contracts\DatabaseAdapter` interface.
+You may also provide a custom adapter class. It needs to implement the `Netflex\Database\DBAL\Contracts\DatabaseAdapter` interface.
 
-The adapter is responsible for translating Laravel database queries into Netflex API queries.
+The adapter is responsible for translating betweeen the database layer of Laravel and the Netflex API.
 
 #### Advanced configuration
 
 ##### Using different API connections
 
-If you have multiple API connections configured, you can specify which one to use by setting the `connection` property on the connection configuration.
+If you have multiple API connections configured, you can specify which one to use by setting the `connection` property on the connection configuration. (See [netflex/api](https://github.com/netflex-sdk/api/blob/master/config/api.php) for reference).
 
 ```php
 [
     'driver' => 'netflex',
     'adapter' => 'entry',
-    'connection' => 'my-connection'
+    'connection' => 'my-connection' // Refers to a Netflex API connection
 ]
 ```
 
 ## Eloquent
 
+### Refrence Model
+
+This package provides a reference model that you can use as a base for your models.
+This is recommended for most use cases, as it provides a number of useful features.
+
+```php
+namespace App\Models;
+
+use Netflex\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    //
+}
+```
+
 ### Models
 
-To use the Netflex API as a database backend for your Eloquent models, simply ensure your models use a 'netflex' driver backed connection, and enure that the `$table` property matches the index name of the structure you want to use.
+To use the Netflex API as a database backend for your Eloquent models, all you have to do is register a database connection that use the `netflex` driver.
 
-If you have configured aliases for your Netflex structures, you can skip name `$table` property and let Eloquent resolve the index name for you based on the model name.
+If you have configured aliases for your Netflex structures, you can skip name `$table` property and let Eloquent resolve the index name for you based on the models alias.
 
-If creating structures through Laravel migrations, we will automatically add the table name as an alias for the structure.
+If creating structures through Laravel migrations and using the `entry` adapter, we will automatically add a table alias for you. This alias follows the convention of the pluralized model name in snake_case.
 
-Given the following example model:
+Example:
+
+In the following example, a default database connection is configured with the name `structures` to use the `netflex` driver, and the `entry` adapter.
+
+`config/database.php`
+```php
+return [
+    'default' => 'structures',
+
+    'connections' => [
+
+        'structures' => [
+            'driver' => 'netflex',
+            'adapter' => 'entry',
+        ]
+    ]
+];
+```
 
 ```php
 <?php
@@ -110,7 +149,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Article extends Model
 {
-    protected $connection = 'netflex';
+    //
 }
 ```
 
@@ -129,12 +168,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Article extends Model
 {
-    protected $connection = 'netflex';
-    protected $table = 'entry_10000';
+    protected $table = '10000';
 }
 ```
 
-If you have configured a 'netflex' driver backed database connection as default, and configured it's `prefix` property to `entry_`, you can also use the following syntax:
+If you have multiple database connections, and the default connection is not configured to use the `netflex` driver, you can specify the connection to use by setting the `$connection` property on your model.
 
 ```php
 <?php
@@ -145,6 +183,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Article extends Model
 {
+    protected $connection = 'structures';
     protected $table = '10000';
 }
 ```
@@ -163,6 +202,8 @@ const UPDATED_AT = 'updated';
 If you have previously used the Model implmentation from the Netflex SDK, some functionality was provided out of the box, that isn't compatible with Eloquent models directly.
 
 This packages provides some traits that you can apply to  your models to bring back this functionality.
+
+All of these features are provided out of the box (except caching) if you use the `Netflex\Database\Eloquent\Model` as your base model.
 
 ### Caching
 
@@ -186,7 +227,7 @@ If you want to automatically refresh the model after saving, you can apply the `
 
 ### Automatically setting name of entries
 
-If you attempt to insert an entry without a `name` property, the API will throw an error.
+If you attempt to insert an entry without the `name` attribute set, the API will throw an error.
 In the Netflex SDK, this was automatically handled by the model, but this isn't consistent with Eloquent models.
 
 You can add this functionality back by applying the `Netflex\Database\Concerns\GeneratesName` trait to your model.
@@ -195,23 +236,12 @@ This will automatically generate a UUID based name for the entry, unless a name 
 
 ## Limitations
 
-This package is still in development, and is not yet feature complete.
+This package is tested on PHP >7.4.and PHP 8.0 through 8.2.
 
-This package is not compatible with PHP >7.4. This is due to the signature of the PDO and PDOStatement classes of PHP having changed in PHP 8.0 and later.
+Currently the internal virtual PDO implementation is implemented as a separate package ([netflex/dbal](https://github.com/netflex-sdk/dbal)).
+This is because the internal type signatures of PDO changed between PHP 7.4 and 8.0, and we need to support both versions.
 
-Once this package is feature complete, we will look into supporting PHP 8.0 and later. It should in theory be as simple as just updating the typing of the PDO stubs.
-
-One approach we could take here, to allow this driver to work on both 7.4 and later, is to move the PDO stubs into a separate package, witch one version for 7.4 and one for 8.0 and later.
-
-Then the clients composer client would install the appropriate version of the stubs package, depending on the PHP version.
-
-## Todo
-
-* Move field creation logic into the adapter
-* Implement more adapters
-    * Pages
-    * Customers
-    * Others?
+At a later stage, when we drop support for PHP 7.4, we will move the PDO stubs into this package's codebase.
 
 ## License
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Netflex\Database;
+namespace Netflex\Database\Eloquent;
 
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
