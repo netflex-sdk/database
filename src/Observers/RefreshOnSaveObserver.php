@@ -2,7 +2,7 @@
 
 namespace Netflex\Database\Observers;
 
-use Netflex\Database\Model;
+use Illuminate\Database\Eloquent\Model;
 
 class RefreshOnSaveObserver
 {
