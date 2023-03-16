@@ -7,13 +7,21 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+use Illuminate\Support\Carbon;
+
 use Netflex\Database\Scopes\PublishedScope;
 
 /**
  * @property bool $published
  * @property bool $use_time
- * @property \Illuminate\Support\Carbon|null $start
- * @property \Illuminate\Support\Carbon|null $end
+ * @property Carbon|null $start
+ * @property Carbon|null $end
+ * @method Builder<static> scopePublished(Builder $query, DateTimeInterface|null $at = null, bool $published = true)
+ * @method Builder<static> scopeUnpublished(Builder $query, DateTimeInterface|null $at = null)
+ * @method Builder<static> scopeWithUnpublished(Builder $query)
+ * @method static Builder<static> published(DateTimeInterface|null $at = null, bool $published = true)
+ * @method static Builder<static> unpublished(DateTimeInterface|null $at = null)
+ * @method static Builder<static> withUnpublished()
  */
 trait Publishable
 {
@@ -24,7 +32,8 @@ trait Publishable
 
     public function initializePublishable()
     {
-        /** @var Model&Publishable $this */
+        /** @var Model $this */
+
         $this->casts['published'] = 'boolean';
         $this->casts['use_time'] = 'boolean';
         $this->casts['start'] = 'datetime';
@@ -50,9 +59,9 @@ trait Publishable
     /** @return bool */
     public function publish()
     {
-        /** @var Model&Publishable $this */
+        /** @var Model $this */
 
-        $this->published = true;
+        $this->setAttribute('published', true);
 
         return $this->save();
     }
@@ -60,9 +69,9 @@ trait Publishable
     /** @return bool */
     public function unpublish()
     {
-        /** @var Model&Publishable $this */
+        /** @var Model $this */
 
-        $this->published = false;
+        $this->setAttribute('published', false);
 
         return $this->save();
     }

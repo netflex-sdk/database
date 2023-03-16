@@ -7,33 +7,36 @@ use Exception;
 use PDOStatement;
 use RuntimeException;
 
+use Illuminate\Support\Str;
+
 use Illuminate\Database\Connection as BaseConnection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\StatementPrepared;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Str;
+use Illuminate\Database\Query\Processors\Processor;
 
 use Netflex\Database\DBAL\PDO;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
 use Netflex\Database\DBAL\Exceptions\QueryException;
 use Netflex\Database\DBAL\Contracts\Connection as ConnectionContract;
+use Netflex\Database\DBAL\Doctrine\Driver as DoctrineDriver;
 
 use Netflex\Database\Facades\Adapter;
-use Netflex\Database\Adapters\EntryAdapter;
 
-use Netflex\Database\DBAL\Doctrine\Driver as DoctrineDriver;
 use Netflex\Database\Driver\QueryGrammar;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 use Netflex\Database\Driver\Schema\SchemaBuilder;
-use Netflex\Database\Repositories\AdapterRepository;
 
 class Connection extends BaseConnection implements ConnectionContract
 {
     protected string $name;
     protected string $connection;
     protected ?string $adapter = null;
+
     protected ?DatabaseAdapter $resolvedAdapter = null;
+
+    /** @var QueryGrammar */
+    protected $queryGrammar;
 
     public function __construct(array $config)
     {
