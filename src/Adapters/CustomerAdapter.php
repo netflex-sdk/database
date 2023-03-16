@@ -10,16 +10,11 @@ use RuntimeException;
 use GuzzleHttp\Exception\ClientException;
 
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
-use Netflex\Database\DBAL\Concerns\PerformsQueries;
 use Netflex\Database\DBAL\PDOStatement;
 use Netflex\Database\DBAL\Column;
 
 final class CustomerAdapter extends AbstractAdapter
 {
-    use PerformsQueries {
-        select as performSelect;
-    }
-
     protected array $reservedTableNames = [
         'customer'
     ];
@@ -123,11 +118,9 @@ final class CustomerAdapter extends AbstractAdapter
         ],
     ];
 
-    public function select(PDOStatement $statement, array $arguments, Closure $callback): bool
+    protected function getTableName(string $table): string
     {
-        $arguments['table'] = 'customer';
-
-        return $this->performSelect($statement, $arguments, $callback);
+        return 'customer';
     }
 
     public function insert(PDOStatement $statement, array $arguments, Closure $callback): bool
@@ -237,7 +230,8 @@ final class CustomerAdapter extends AbstractAdapter
                 )
             );
 
-            $callback(array_map(fn (Column $field) => $field->toArray(), $result));
+            $callback($result);
+
             return true;
         } catch (Exception $e) {
             return false;

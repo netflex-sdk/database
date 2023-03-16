@@ -15,13 +15,9 @@ use Netflex\Database\DBAL\Adapters\AbstractAdapter;
 use Netflex\Database\DBAL\PDOStatement;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Column;
-use Netflex\Database\DBAL\Concerns\PerformsQueries;
-use Netflex\Database\DBAL\Contracts\Connection;
 
 final class EntryAdapter extends AbstractAdapter
 {
-    use PerformsQueries;
-
     protected string $tablePrefix = 'entry_';
 
     protected array $reservedTableNames = [
@@ -253,7 +249,8 @@ final class EntryAdapter extends AbstractAdapter
                 )
             );
 
-            $callback(array_map(fn (Column $field) => $field->toArray(), $result));
+            $callback($result);
+
             return true;
         } catch (Exception $e) {
             return false;

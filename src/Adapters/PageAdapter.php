@@ -5,15 +5,10 @@ namespace Netflex\Database\Adapters;
 use Closure;
 
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
-use Netflex\Database\DBAL\Concerns\PerformsQueries;
 use Netflex\Database\DBAL\PDOStatement;
 
 final class PageAdapter extends AbstractAdapter
 {
-    use PerformsQueries {
-        select as performSelect;
-    }
-
     protected array $reservedTableNames = [
         'page'
     ];
@@ -222,10 +217,8 @@ final class PageAdapter extends AbstractAdapter
         ],
     ];
 
-    public function select(PDOStatement $statement, array $arguments, Closure $callback): bool
+    protected function getTableName(string $table): string
     {
-        $arguments['table'] = 'page';
-
-        return $this->performSelect($statement, $arguments, $callback);
+        return 'page';
     }
 }
