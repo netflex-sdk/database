@@ -23,6 +23,6 @@ trait GeneratesName
 
     public function freshUrl()
     {
-        return Str::slug($this->getModelName());
+        return Str::slug($this->name);
     }
 }
