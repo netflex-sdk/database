@@ -338,6 +338,21 @@ class QueryGrammar extends Grammar
             ->getQuery();
     }
 
+    /**
+     * Compile a raw where clause.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $where
+     * @return string
+     */
+    protected function whereRaw(Builder $query, $where)
+    {
+        $builder = new QueryBuilder;
+        $bindings = $query->bindings['where'] ?? [];
+        $bindings = array_map(fn ($binding) => $builder->escapeValue($binding), $bindings);
+        return Str::replaceArray('?', $bindings, $where['sql']);
+    }
+
     public function removeQualifiedColumn($table, $column)
     {
         // Remove the table name from the column name. If set
