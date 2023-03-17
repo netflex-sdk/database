@@ -2,10 +2,7 @@
 
 namespace Netflex\Database\Adapters;
 
-use Closure;
-
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
-use Netflex\Database\DBAL\PDOStatement;
 
 final class PageAdapter extends AbstractAdapter
 {
