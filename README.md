@@ -246,3 +246,7 @@ At a later stage, when we drop support for PHP 7.4, we will move the PDO stubs i
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
+
+---
+
+Copyright © 2023 [Apility AS](https://www.apility.no/)
