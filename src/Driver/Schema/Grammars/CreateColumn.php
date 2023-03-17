@@ -44,6 +44,10 @@ class CreateColumn
 
         $config = array_merge($column->config ?? [], []);
 
+        if ($column->widget ?? null) {
+            $field['type'] = $column->widget;
+        }
+
         if ($column->useCurrent ?? false) {
             $config['default_value'] = [
                 'type' => 'textField',

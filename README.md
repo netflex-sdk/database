@@ -238,7 +238,7 @@ return new class extends Migration
             $table->id(); // Ignored by Netflex
             $table->string('intro');
             $table->timestamp('written_at')->useCurrent(); // Sets the default_value config to "{datetime}"
-            $table->text('body')->type('editor-large'); // You may also override types to reflect the Netflex editor widget.
+            $table->text('body')->widget('editor-large'); // You may specify which widget to use in the Netflex UI
         });
     }
 

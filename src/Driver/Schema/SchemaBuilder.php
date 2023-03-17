@@ -4,12 +4,15 @@ namespace Netflex\Database\Driver\Schema;
 
 use Illuminate\Database\Schema\Builder;
 
+use Netflex\Database\DBAL\Command;
 use Netflex\Database\Driver\Connection;
+use Netflex\Database\Driver\Schema\Grammars\TableExists;
 use Netflex\Database\Driver\Schema\SchemaGrammar;
 
 class SchemaBuilder extends Builder
 {
-    protected $client;
+    /** @var Connection */
+    protected $connection;
 
     public function __construct(Connection $connection)
     {
@@ -18,20 +21,15 @@ class SchemaBuilder extends Builder
         }
 
         parent::__construct($connection);
-        $this->client = $connection->getPdo()->getAPIClient();
         $this->grammar = new SchemaGrammar($connection);
     }
 
     public function hasTable($table)
     {
-        $result = $this->client->get('builder/structures');
+        $pdo = $this->connection->getPdo();
 
-        foreach ($result as $structure) {
-            if ($structure->id == $table || $structure->alias == $table) {
-                return true;
-            }
-        }
+        $statement = $pdo->prepare(TableExists::compile($this->connection, $table));
 
-        return false;
+        return $statement->execute();
     }
 }
