@@ -2,7 +2,10 @@
 
 namespace Netflex\Database\Adapters;
 
+use Closure;
+
 use Netflex\Database\DBAL\Adapters\AbstractAdapter;
+use Netflex\Database\DBAL\PDOStatement;
 
 final class PageAdapter extends AbstractAdapter
 {
@@ -217,5 +220,14 @@ final class PageAdapter extends AbstractAdapter
     protected function getTableName(string $table): string
     {
         return 'page';
+    }
+
+    public function tableExists(PDOStatement $statement, array $arguments, Closure $callback): bool
+    {
+        if ($arguments['table'] === $this->getTableName($arguments['table'])) {
+            return true;
+        }
+
+        return false;
     }
 }

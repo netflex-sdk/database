@@ -198,7 +198,11 @@ final class CustomerAdapter extends AbstractAdapter
 
     public function tableExists(PDOStatement $statement, array $arguments, Closure $callback): bool
     {
-        return true;
+        if ($arguments['table'] === $this->getTableName($arguments['table'])) {
+            return true;
+        }
+
+        return false;
     }
 
     public function createTable(PDOStatement $statement, array $arguments, Closure $callback): bool
