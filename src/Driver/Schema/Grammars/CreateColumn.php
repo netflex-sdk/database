@@ -44,6 +44,13 @@ class CreateColumn
 
         $config = array_merge($column->config ?? [], []);
 
+        if ($column->useCurrent ?? false) {
+            $config['default_value'] = [
+                'type' => 'textField',
+                'value' => '{datetime}'
+            ];
+        }
+
         if (isset($column->default)) {
             $config['default_value'] = [
                 'type' => 'textField',
