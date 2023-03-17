@@ -38,11 +38,11 @@ class CreateColumn
         $field = [
             'name' => Column::normalizeName($column->name),
             'table' => $blueprint->getTable(),
-            'type' => $column->type,
+            'type' => $column->type ?? 'text',
             'column' => $column->name,
         ];
 
-        $config = [];
+        $config = array_merge($column->config ?? [], []);
 
         if (isset($column->default)) {
             $config['default_value'] = [
