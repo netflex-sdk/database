@@ -21,6 +21,7 @@ This package supports Laravel 8 through 10, and PHP 7.4 through 8.2.
     * [Reference Model](#reference-model)
     * [Models](#models)
         * [Caveats](#caveats)
+* [Migrations](#migrations)
 * [Netflex specific functionality](#netflex-specific-functionality)
     * [Caching](#caching)
     * [Automatically respecting the publishing status of an entry](#automatically-respecting-the-publishing-status-of-an-entry)
@@ -195,6 +196,55 @@ Since the Netflex API uses the field names `created` and `updated` for it's defa
 ```php
 const CREATED_AT = 'created';
 const UPDATED_AT = 'updated';
+```
+
+## Migrations
+
+Migrations are supported for the `entry` adapter, and will automatically create or alter the structure in Netflex.
+
+Reserved fields in the Netflex API are automatically handled, and will not be added or altered. This allows you to re-use the same migrations for both Netflex and relational databases.
+
+Unique contraints and cascades are not supported. You can have them in your migration, but they will be ignored.
+
+You create and manage migrations as you normally would through Artisan.
+
+Default values are supported. Here you may also use the special syntax for Netflex to automatically add certain values, like datetimes and UUID's etc. See [Netflex documentation for more information](https://netflex-sdk.github.io/#/docs/faq?id=default_value).
+
+Assuming you have configured a default database connection to use the `netflex` driver with the `entry` adapter:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('articles', function (Blueprint $table) {
+            $table->id(); // Ignored by Netflex
+            $table->string('intro');
+
+            // You may also override types to reflect the Netflex editor widget.
+            $table->text('body')
+                ->type('editor-large');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('articles');
+    }
+};
+
 ```
 
 ## Netflex specific functionality
