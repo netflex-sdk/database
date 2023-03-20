@@ -14,6 +14,8 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\Query\Processors\Processor;
 
+use Netflex\API\Contracts\APIClient;
+
 use Netflex\Database\DBAL\PDO;
 use Netflex\Database\DBAL\Command;
 use Netflex\Database\DBAL\Contracts\DatabaseAdapter;
@@ -83,6 +85,16 @@ class Connection extends BaseConnection implements ConnectionContract
         /** @var PDO $pdo */
         $pdo = parent::getPdo();
         return $pdo;
+    }
+
+    /**
+     * Get the current Netflex API connection.
+     *
+     * @return APIClient
+     */
+    public function getClient(): APIClient
+    {
+        return $this->getPdo()->getAPIClient();
     }
 
     /**
