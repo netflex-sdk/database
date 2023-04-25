@@ -292,7 +292,7 @@ class QueryGrammar extends Grammar
     protected function compileWheresToArray($query)
     {
         return collect($query->wheres)->map(function ($where) use ($query) {
-            if (array_key_exists('column', $where)) {
+            if (isset($where['column'])) {
                 $where['column'] = $this->removeQualifiedColumn($query->from, $where['column']);
             }
 
