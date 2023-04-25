@@ -300,6 +300,11 @@ class QueryGrammar extends Grammar
         })->all();
     }
 
+    protected function compileColumn($column)
+    {
+        return Str::replace('->', '.', $column);
+    }
+
     /**
      * Format the where clause statements into one string.
      *
@@ -360,7 +365,7 @@ class QueryGrammar extends Grammar
             $column = Str::replaceFirst($table . '.', '', $column);
         }
 
-        return $column;
+        return $this->compileColumn($column);
     }
 
     protected function whereNested(Builder $query, $where)
@@ -441,7 +446,7 @@ class QueryGrammar extends Grammar
 
     protected function whereColumn(Builder $query, $where)
     {
-        throw new RuntimeException('This database engine does not support the [whereBetweenColumns] operation.');
+        throw new RuntimeException('This database engine does not support the [whereColumn] operation.');
     }
 
     protected function whereBetweenColumns(Builder $query, $where)
