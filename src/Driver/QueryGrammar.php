@@ -280,7 +280,7 @@ class QueryGrammar extends Grammar
      */
     protected function whereNotNull(Builder $query, $where)
     {
-        return '_exists_:' . $this->removeQualifiedColumn($query->from, $where['column']);
+        return '_exists_:' . $where['column'];
     }
 
     /**
@@ -292,6 +292,8 @@ class QueryGrammar extends Grammar
     protected function compileWheresToArray($query)
     {
         return collect($query->wheres)->map(function ($where) use ($query) {
+            $where['column'] = $this->removeQualifiedColumn($query->from, $where['column']);
+
             if ($compiled = $this->{"where{$where['type']}"}($query, $where)) {
                 return Str::upper($where['boolean']) . ' (' . $compiled . ')';
             }
@@ -327,8 +329,6 @@ class QueryGrammar extends Grammar
     protected function whereBasic(Builder $query, $where)
     {
         $builder = new QueryBuilder(false, []);
-
-        $where['column'] = $this->removeQualifiedColumn($query->from, $where['column']);
 
         if (is_string($where['value'])) {
             $where['value'] = str_replace('%', '*', $where['value']);
