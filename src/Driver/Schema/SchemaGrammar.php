@@ -19,7 +19,8 @@ use Netflex\Database\Driver\Schema\Grammars\DropTableIfExists;
 
 class SchemaGrammar extends Grammar
 {
-    protected Connection $connection;
+    /** @var Connection */
+    protected $connection;
 
     public function __construct(Connection $connection)
     {
