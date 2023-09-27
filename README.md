@@ -96,6 +96,19 @@ If you have multiple API connections configured, you can specify which one to us
 ]
 ```
 
+You may also define the API connection directly on the driver configuration array
+
+```php
+[
+    'driver' => 'netflex',
+    'adapter' => 'entry',
+    'public_key' => env('NETFLEX_PUBLIC_KEY'),
+    'private_key' => env('NETFLEX_PRIVATE_KEY'),
+]
+```
+
+Note that this will implicitly reguster a new API connection with the name derrived from the public key. This is necessary due to how the API connection is resolved internally.
+
 ## Eloquent
 
 ### Refrence Model
